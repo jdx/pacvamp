@@ -177,6 +177,8 @@ impl Disposable {
             _directory: directory,
             cleanup: None,
         };
+        // Fail authorization before creating any root-owned clone contents.
+        image.arm_cleanup()?;
         clone_image(root, &image.root)?;
         if !packages.is_empty() {
             update(&image.root, packages, yes)?;
@@ -206,7 +208,6 @@ impl Disposable {
             privileged("arch-nspawn", args)?;
         }
         super::chroot::host(&image.root)?;
-        image.arm_cleanup()?;
         Ok(image)
     }
     fn arm_cleanup(&mut self) -> Result<()> {
@@ -238,7 +239,7 @@ impl Disposable {
         let child = self.cleanup.as_mut().unwrap();
         let mut ready = String::new();
         std::io::BufReader::new(child.stdout.take().unwrap()).read_line(&mut ready)?;
-        if ready != "ready\n" {
+        if !matches!(ready.as_str(), "ready\n" | "ready\r\n") {
             bail!("privileged image cleanup failed to start");
         }
         Ok(())

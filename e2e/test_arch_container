@@ -274,6 +274,18 @@ runuser -u pacvamp-builder -- git -C /srv/pacvamp-aur/work add PKGBUILD
 runuser -u pacvamp-builder -- git -C /srv/pacvamp-aur/work -c user.name=Fixture -c user.email=fixture@example.com commit -qm 'chroot isolation probes'
 runuser -u pacvamp-builder -- git -C /srv/pacvamp-aur/work push -q /srv/pacvamp-aur/pacvamp-jail-probe.git HEAD:master
 runuser -u pacvamp-builder -- env   PACVAMP_AUR_RPC_BASE=http://127.0.0.1:18763   PACVAMP_AUR_GIT_BASE=file:///srv/pacvamp-aur   /usr/local/bin/pacvamp aur approve --force pacvamp-jail-probe
+# Denied cleaner authorization must fail before any root-owned clone is made.
+printf '%s\n' 'pacvamp-builder ALL=(root) PASSWD: /usr/bin/bash' >>/etc/sudoers.d/pacvamp-fixture
+if runuser -u pacvamp-builder -- env PACVAMP_AUR_RPC_BASE=http://127.0.0.1:18763 PACVAMP_AUR_GIT_BASE=file:///srv/pacvamp-aur /usr/local/bin/pacvamp aur build pacvamp-jail-probe --prepare-image >/tmp/cleanup-startup.log 2>&1; then
+  echo 'cleaner authorization unexpectedly succeeded' >&2
+  exit 1
+fi
+grep -q 'privileged image cleanup failed to start' /tmp/cleanup-startup.log
+python - <<'NO_CLONE'
+import glob
+assert not glob.glob('/home/pacvamp-builder/.cache/pacvamp/aur/.pacvamp-images/*')
+NO_CLONE
+printf '%s\n' 'pacvamp-builder ALL=(root) NOPASSWD: /usr/bin/bash' >>/etc/sudoers.d/pacvamp-fixture
 runuser -u pacvamp-builder -- env   PACVAMP_AUR_RPC_BASE=http://127.0.0.1:18763   PACVAMP_AUR_GIT_BASE=file:///srv/pacvamp-aur   /usr/local/bin/pacvamp aur build pacvamp-jail-probe --prepare-image
 test ! -e /srv/pacvamp-image/root/usr/share/pacvamp-image-poison
 python - <<'CHECK'
@@ -283,4 +295,12 @@ import os
 images=[r.get("chroot") for r in receipts if r.get("chroot")]
 assert images and all(p.startswith("/home/pacvamp-builder/.cache/pacvamp/aur/.pacvamp-images/pacvamp-image-") and not os.path.exists(p) for p in images)
 CHECK
+# Exercise terminal/PTY stdio, including sudo's newline conversion.
+printf '%s\n' 'Defaults:pacvamp-builder use_pty' 'pacvamp-builder ALL=(root) NOPASSWD: ALL' >/etc/sudoers.d/pacvamp-fixture
+script -qec 'runuser -u pacvamp-builder -- env PACVAMP_AUR_RPC_BASE=http://127.0.0.1:18763 PACVAMP_AUR_GIT_BASE=file:///srv/pacvamp-aur /usr/local/bin/pacvamp aur build pacvamp-jail-probe --prepare-image -y' /dev/null </dev/null
+python - <<'TTY_CLEANUP'
+import glob
+assert not glob.glob('/home/pacvamp-builder/.cache/pacvamp/aur/.pacvamp-images/*')
+TTY_CLEANUP
+
 PRODUCTION
