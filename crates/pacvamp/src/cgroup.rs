@@ -84,7 +84,7 @@ impl Drop for Group {
 pub fn join(path: &Path) -> Result<()> {
     validate(path)?;
     fs::write(path.join("cgroup.procs"), std::process::id().to_string())
-        .wrap_err("joining build cgroup")
+        .wrap_err("joining build cgroup; run the supervisor inside the delegated subtree and delegate its root cgroup.procs")
 }
 pub fn cleanup(path: &Path) -> Result<()> {
     validate(path)?;
