@@ -120,9 +120,13 @@ impl Disposable {
     ) -> Result<Self> {
         validate_packages(packages)?;
         // Copy and verify artifacts before asking root to consume them.
+        // Arch normally mounts /tmp on tmpfs. Keep potentially multi-gigabyte
+        // clones on the user's cache volume, independently of TMPDIR.
+        let images = super::cache_dir().join(".pacvamp-images");
+        std::fs::create_dir_all(&images)?;
         let directory = tempfile::Builder::new()
             .prefix("pacvamp-image-")
-            .tempdir()?;
+            .tempdir_in(&images)?;
         let artifacts_dir = directory.path().join("artifacts");
         std::fs::create_dir(&artifacts_dir)?;
         let mut copies = Vec::new();

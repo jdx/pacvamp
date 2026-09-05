@@ -276,6 +276,6 @@ import glob,json
 receipts=[json.load(open(p)) for p in glob.glob("/home/pacvamp-builder/.cache/pacvamp/aur/.pacvamp-build/runs/*/receipt.json")]
 import os
 images=[r.get("chroot") for r in receipts if r.get("chroot")]
-assert images and all("pacvamp-image-" in p and not os.path.exists(p) for p in images)
+assert images and all(p.startswith("/home/pacvamp-builder/.cache/pacvamp/aur/.pacvamp-images/pacvamp-image-") and not os.path.exists(p) for p in images)
 CHECK
 PRODUCTION

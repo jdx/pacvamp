@@ -62,3 +62,5 @@ can upgrade the disposable image to keep its repository packages coherent. The
 resulting package inventory is recorded in the receipt. The shared base image and
 host package database are unchanged. A forced kill may leave a temporary image
 under the system temporary directory; its path is printed during provisioning.
+
+Disposable images live under the user’s AUR cache in `.pacvamp-images`, independently of `TMPDIR`, so Arch’s default `/tmp` tmpfs does not absorb a multi-gigabyte image. Put the cache on the base image’s filesystem to allow reflinks; other filesystems require space for a full copy. Normal cleanup removes the clone; forced termination may leave a directory there for inspection and manual cleanup.
