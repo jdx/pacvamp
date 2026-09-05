@@ -221,8 +221,13 @@ PATH="/tmp/pacvamp-shadow-tools:$PATH" /usr/local/bin/pacvamp build-env update /
 test ! -e /tmp/pacvamp-shadow-tool-ran
 test ! -x /srv/pacvamp-image/root/usr/bin/cmake
 test -x /srv/pacvamp-image/prepared/usr/bin/cmake
-printf '%s\n' 'pacvamp-builder ALL=(root) NOPASSWD: ALL' >/etc/sudoers.d/pacvamp-fixture
+printf '%s\n' 'Defaults:pacvamp-builder timestamp_timeout=0' 'pacvamp-builder ALL=(root) NOPASSWD: ALL' 'pacvamp-builder ALL=(root) PASSWD: /usr/bin/rm' >/etc/sudoers.d/pacvamp-fixture
 chmod 440 /etc/sudoers.d/pacvamp-fixture
+# Fresh cleanup elevation is unavailable; the pre-authorized cleaner must work.
+if runuser -u pacvamp-builder -- sudo -n /usr/bin/rm -f -- /tmp/pacvamp-cleanup-auth-probe; then
+  echo 'cleanup authorization fixture did not deny fresh sudo' >&2
+  exit 1
+fi
 # Resolve a synthetic source hostname through a local DNS server. The image
 # deliberately has the systemd-resolved symlink that broke this path previously.
 cat >/srv/pacvamp-aur/dns.py <<'DNS'

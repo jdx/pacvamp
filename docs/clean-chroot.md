@@ -64,3 +64,5 @@ host package database are unchanged. A forced kill may leave a temporary image
 under the system temporary directory; its path is printed during provisioning.
 
 Disposable images live under the user’s AUR cache in `.pacvamp-images`, independently of `TMPDIR`, so Arch’s default `/tmp` tmpfs does not absorb a multi-gigabyte image. Put the cache on the base image’s filesystem to allow reflinks; other filesystems require space for a full copy. Normal cleanup removes the clone; forced termination may leave a directory there for inspection and manual cleanup.
+
+Before running the recipe, disposable builds authorize a dedicated cleanup process. It waits outside the build’s process group and removes the clone when the supervisor closes its pipe, so an expired sudo timestamp does not strand a successful long build’s image. Cleanup is anchored to the original private directory; replacing its pathname cannot redirect deletion. Provisioning failures before the cleaner starts can still require manual cleanup.
