@@ -34,13 +34,22 @@ jobs:
         run: mise run lint
         env:
           HK_SKIP_STEPS: cargo-clippy
+      - name: Delegate cgroup controllers for kernel enforcement tests
+        run: |
+          sudo mkdir /sys/fs/cgroup/pacvamp-ci /sys/fs/cgroup/pacvamp-ci/supervisor
+          echo '+cpu +memory +pids' | sudo tee /sys/fs/cgroup/pacvamp-ci/cgroup.subtree_control
+          sudo chown "$(id -u):$(id -g)" /sys/fs/cgroup/pacvamp-ci /sys/fs/cgroup/pacvamp-ci/cgroup.procs /sys/fs/cgroup/pacvamp-ci/cgroup.subtree_control /sys/fs/cgroup/pacvamp-ci/supervisor /sys/fs/cgroup/pacvamp-ci/supervisor/cgroup.procs
       - parallel:
           - name: Test and check generated CLI docs
             run: |
+              # Bootstrap this test shell into the delegated subtree; all test
+              # children inherit it. Never grant writes to the host root cgroup.
+              sudo sh -c 'printf "%s\n" "$1" > /sys/fs/cgroup/pacvamp-ci/supervisor/cgroup.procs' _ "$$"
               mbx test --workspace --all-features
               mise run render:check
             env:
               PACVAMP_REQUIRE_JAIL: "1"
+              PACVAMP_TEST_CGROUP_ROOT: /sys/fs/cgroup/pacvamp-ci
           - name: Clippy
             run: mbx clippy --workspace --all-features --all-targets -- -D warnings
             env:
