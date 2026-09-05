@@ -76,6 +76,8 @@ and managed CPU percentages are upper bounds.
 
 An independent watcher outside the cgroup holds a pipe from the supervisor.
 When the supervisor exits, including SIGKILL, pipe closure triggers `cgroup.kill`
-and removal of the group. Uninterruptible kernel tasks can delay removal; killing
-both supervisor and watcher defeats this cleanup mechanism. Disk accounting is
+and removal of the group. Uninterruptible kernel tasks can delay removal: the
+watcher keeps retrying busy groups with capped backoff until they disappear. The
+CLI waits at most two seconds for the watcher, then leaves cleanup running
+independently. Killing both supervisor and watcher defeats this cleanup mechanism. Disk accounting is
 still sampled and is not a filesystem quota.
