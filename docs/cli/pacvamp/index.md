@@ -19,6 +19,7 @@
 
 ## Subcommands
 
+- [`pacvamp completion <SHELL>`](/cli/pacvamp/completion.md)
 - [`pacvamp add [FLAGS] <PACKAGES>…`](/cli/pacvamp/add.md)
 - [`pacvamp apply [-y --yes] [-n --dry-run]`](/cli/pacvamp/apply.md)
 - [`pacvamp audit [FLAGS]`](/cli/pacvamp/audit.md)

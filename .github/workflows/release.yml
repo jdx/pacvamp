@@ -111,11 +111,61 @@ jobs:
         run: |
           mkdir -p dist
           gh release download "$GITHUB_REF_NAME" --dir dist --pattern 'pacvamp-*.tar.xz'
+      - name: Install completion syntax checkers
+        timeout-minutes: 5
+        run: |
+          if [[ -f /etc/apt/apt-mirrors.txt ]]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+          fi
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y zsh fish
+          # Hosted runners include PowerShell; Namespace images have its signed apt repository.
+          if ! command -v pwsh >/dev/null 2>&1; then
+            sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y powershell
+          fi
+      - name: Publish CLI specifications and completions
+        run: |
+          set -euo pipefail
+          mkdir -p bin resources
+          tar -xJf "dist/pacvamp-${GITHUB_REF_NAME}-x86_64-unknown-linux-musl.tar.xz" -C bin
+          for program in pacvamp pacvamp-repo; do
+            "bin/$program" __usage > "resources/$program.usage.kdl"
+            for shell in bash zsh fish powershell; do
+              "bin/$program" completion "$shell" > "resources/$program.$shell"
+              test -s "resources/$program.$shell"
+              grep -Fq '__complete_word__' "resources/$program.$shell"
+              "bin/$program" __complete_word__ --shell "$shell" --line "$program ver" | grep -Fq -- 'version'
+            done
+            bash -n "resources/$program.bash"
+            zsh -n "resources/$program.zsh"
+            fish --no-execute "resources/$program.fish"
+          done
+          cat > completion-syntax-check.ps1 <<'POWERSHELL'
+          $ErrorActionPreference = 'Stop'
+          foreach ($script in Get-ChildItem -LiteralPath "resources" -Filter '*.powershell') {
+            $parseErrors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($script.FullName, [ref]$null, [ref]$parseErrors)
+            if ($parseErrors.Count) { $parseErrors | Write-Error; exit 1 }
+          }
+          POWERSHELL
+          pwsh -NoProfile -NonInteractive -File completion-syntax-check.ps1
+          gh release upload "$GITHUB_REF_NAME" resources/* --clobber
       - uses: jdx/packslip@a0d434ad57571c62dbd0ab5095b4eff607a71fd3 # v1.1.1
         with:
           artifacts: dist/pacvamp-*.tar.xz
           bin: pacvamp pacvamp-repo
-          resources: license=archive:LICENSE
+          resources: |
+            license=archive:LICENSE
+            cli-spec/usage/pacvamp=asset:resources/pacvamp.usage.kdl
+            completion/bash/pacvamp=asset:resources/pacvamp.bash
+            completion/zsh/pacvamp=asset:resources/pacvamp.zsh
+            completion/fish/pacvamp=asset:resources/pacvamp.fish
+            completion/powershell/pacvamp=asset:resources/pacvamp.powershell
+            cli-spec/usage/pacvamp-repo=asset:resources/pacvamp-repo.usage.kdl
+            completion/bash/pacvamp-repo=asset:resources/pacvamp-repo.bash
+            completion/zsh/pacvamp-repo=asset:resources/pacvamp-repo.zsh
+            completion/fish/pacvamp-repo=asset:resources/pacvamp-repo.fish
+            completion/powershell/pacvamp-repo=asset:resources/pacvamp-repo.powershell
 
   publish-release:
     needs: [packslip]

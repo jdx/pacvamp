@@ -15,6 +15,7 @@
 
 ## Subcommands
 
+- [`pacvamp-repo completion <SHELL>`](/cli/pacvamp-repo/completion.md)
 - [`pacvamp-repo advisories [-f --feed <FEED>] [-k --key <KEY>] <SUBCOMMAND>`](/cli/pacvamp-repo/advisories.md)
 - [`pacvamp-repo advisories add <FLAGS>`](/cli/pacvamp-repo/advisories/add.md)
 - [`pacvamp-repo advisories remove <--id <ID>>`](/cli/pacvamp-repo/advisories/remove.md)
