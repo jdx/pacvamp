@@ -76,28 +76,42 @@ fn show(app: &App, days: u64, max: Option<u64>, remove: bool, json: bool) -> Res
         .filter_map(|e| e.build_receipt.as_ref())
         .map(|r| r.path.canonicalize())
         .collect::<std::io::Result<_>>()?;
-    let runs = crate::aur::cache::inventory(&cache, &references, days, max)?;
+    let mut runs = crate::aur::cache::inventory(&cache, &references, days, max)?;
     if remove {
-        for run in runs.iter().filter(|r| r.prune) {
-            std::fs::remove_dir_all(&run.path)?;
+        for run in runs.iter_mut().filter(|r| r.prune) {
+            match crate::aur::cache::remove_run(&run.path) {
+                Ok(()) => run.removed = true,
+                Err(err) => run.error = Some(format!("could not remove run: {err:#}")),
+            }
         }
     }
+    let failed = remove && runs.iter().any(|run| run.prune && !run.removed);
     if json {
-        return print_json(&runs);
+        print_json(&runs)?;
+    } else {
+        for run in runs {
+            println!(
+                "{} {} {}",
+                if run.prune && run.error.is_some() {
+                    "failed"
+                } else if run.protected {
+                    "protected"
+                } else if run.prune {
+                    if remove { "removed" } else { "eligible" }
+                } else {
+                    "retained"
+                },
+                run.bytes
+                    .map_or_else(|| "unknown size".into(), super::format_size),
+                run.path.display()
+            );
+            if let Some(error) = run.error {
+                println!("  {}", error.escape_debug());
+            }
+        }
     }
-    for run in runs {
-        println!(
-            "{} {} {}",
-            if run.protected {
-                "protected"
-            } else if run.prune {
-                if remove { "removed" } else { "eligible" }
-            } else {
-                "retained"
-            },
-            super::format_size(run.bytes),
-            run.path.display()
-        );
+    if failed {
+        eyre::bail!("some cache runs could not be removed; see per-run errors");
     }
     Ok(())
 }

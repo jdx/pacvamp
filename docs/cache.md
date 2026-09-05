@@ -16,3 +16,5 @@ sysroots is not supported.
 Commands that may build or install AUR packages hold a shared cache lease through approval, installation, and ledger recording. Pruning cannot remove their artifacts during a long confirmation prompt.
 
 Status and dry runs use shared leases and can inspect a running build. Their sizes are a live estimate; actual pruning takes an exclusive lease and calculates eligibility again.
+
+An unreadable run is retained and reported with an unknown size (`bytes: null` in JSON); other runs can still be inspected and pruned. Known size totals exclude unreadable runs. Pruning makes owned directories writable without changing file permissions or following symlinks. Removal failures are reported per run while cleanup continues, and the command exits unsuccessfully if any selected run could not be removed.
