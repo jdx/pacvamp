@@ -465,3 +465,22 @@ fn doctor_reports_missing_review_source_on_arch_only_hosts() {
         }
     }
 }
+
+#[test]
+fn doctor_rejects_cgroups_without_the_filesystem_jail() {
+    let rig = common::Rig::new();
+    rig.write_root(
+        "/etc/pacvamp/pacvamp.toml",
+        "[policy.aur]\njail = false\ncgroup_root = '/sys/fs/cgroup'\n",
+    );
+    let (_, out, _) = rig.run(&["doctor", "--json"], "", 0);
+    let findings: Vec<serde_json::Value> = serde_json::from_str(&out).unwrap();
+    assert!(findings.iter().any(|finding| {
+        finding["check"] == "build-cgroup"
+            && finding["status"] == "fail"
+            && finding["detail"]
+                .as_str()
+                .unwrap()
+                .contains("require the filesystem jail")
+    }));
+}

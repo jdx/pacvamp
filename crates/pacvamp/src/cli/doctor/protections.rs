@@ -51,7 +51,12 @@ pub(super) fn diagnose_protections(
         Err(err) => add(Status::Fail, "build-limits", format!("{err:#}")),
     }
     if let Some(root) = &settings.aur_cgroup_root {
-        match crate::cgroup::validate(root) {
+        let support = if settings.aur_jail {
+            crate::cgroup::validate(root)
+        } else {
+            Err(eyre::eyre!("cgroup builds require the filesystem jail"))
+        };
+        match support {
             Ok(()) => add(
                 Status::Ok,
                 "build-cgroup",
