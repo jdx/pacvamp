@@ -15,6 +15,10 @@ flag "-h --help" help="Print help" action=help builtin=#true
 flag "-V --version" help="Print version" action=version builtin=#true
 complete config type=path
 complete sysroot type=dir
+cmd completion help="Generate a self-contained shell completion script" {
+    flag "-h --help" help="Print help" action=help builtin=#true
+    arg <SHELL> help="Shell: bash, zsh, fish, or powershell"
+}
 cmd add help="Declare packages in your manifest, then install them" {
     long_help #"""
 Declare packages in your manifest, then install them

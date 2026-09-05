@@ -11,6 +11,10 @@ Everything a repository needs to publish what pacvamp verifies: the signed index
 arg_required_else_help #true
 flag "-h --help" help="Print help" action=help builtin=#true
 flag "-V --version" help="Print version" action=version builtin=#true
+cmd completion help="Generate a self-contained shell completion script" {
+    flag "-h --help" help="Print help" action=help builtin=#true
+    arg <SHELL> help="Shell: bash, zsh, fish, or powershell"
+}
 cmd advisories help="Add or remove advisories in the signed advisory feed" subcommand_required=#true {
     long_help #"""
 Add or remove advisories in the signed advisory feed

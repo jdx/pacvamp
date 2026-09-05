@@ -32,6 +32,7 @@ const BIN: BinInfo = BinInfo {
 /// gate, the vendor pipeline, the AUR sync gate, verdicts, advisories,
 /// and snapshots. See PLAN.md in the pacvamp repository.
 #[derive(usage_rs::Cli)]
+#[usage(completion = true)]
 #[usage(
     bin = "pacvamp-repo",
     version,
@@ -43,8 +44,28 @@ struct Cli {
     command: Option<Commands>,
 }
 
+/// Generate a self-contained shell completion script
+#[derive(Debug, usage_rs::Args)]
+struct Completion {
+    /// Shell: bash, zsh, fish, or powershell
+    #[usage(arg)]
+    shell: String,
+}
+
+impl RunWith<()> for Completion {
+    type Output = Result<()>;
+
+    fn run_with(self, _: ()) -> Self::Output {
+        let shell = usage_rs::complete::Shell::from_name(&self.shell)
+            .ok_or_else(|| eyre::eyre!("unsupported shell: {}", self.shell))?;
+        print!("{}", Cli::completion_script(shell));
+        Ok(())
+    }
+}
+
 #[derive(usage_rs::Subcommands)]
 enum Commands {
+    Completion(Completion),
     Advisories(advisories::Advisories),
     Attest(attest::Attest),
     Index(index::IndexCmd),
@@ -61,10 +82,15 @@ enum Commands {
 fn main() -> Result<()> {
     color_eyre::install()?;
     let args: Vec<OsString> = std::env::args_os().collect();
+    if let Some(answer) = Cli::completion_request(&args[1..]) {
+        print!("{answer}");
+        return Ok(());
+    }
     pacvamp_cli_support::dump_usage_spec_if_requested(&args, || Cli::spec().to_kdl());
     let argv = pacvamp_cli_support::argv(&args);
     let cli = pacvamp_cli_support::unwrap_or_exit(Cli::spec(), &argv, Cli::parse_from_argv(&argv));
     match cli.command {
+        Some(Commands::Completion(cmd)) => cmd.run_with(()),
         Some(Commands::Advisories(cmd)) => cmd.run_with(()),
         Some(Commands::Attest(cmd)) => cmd.run_with(()),
         Some(Commands::Index(cmd)) => cmd.run_with(()),
