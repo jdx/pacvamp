@@ -1097,13 +1097,14 @@ impl RunWith<&App> for Rebuild {
         let (reference, receipt_ref) = crate::aur::receipt::for_artifact(&self.artifact)?;
         let mut prepared =
             app.prepare_aur(&reference.pkgbase, Some(&reference.commit), true, false)?;
+        let image = self.image.canonicalize()?;
         if prepared.settings.aur_chroot_root_managed
-            && prepared.settings.aur_chroot_root.canonicalize()? != self.image.canonicalize()?
+            && prepared.settings.aur_chroot_root.canonicalize()? != image
         {
             bail!("rebuild image differs from the managed image root");
         }
         prepared.settings.aur_chroot = true;
-        prepared.settings.aur_chroot_root = self.image;
+        prepared.settings.aur_chroot_root = image;
         let opts = crate::aur::build::BuildOpts::from_settings(
             &prepared.settings,
             &prepared.reviewed.pkgbase,
