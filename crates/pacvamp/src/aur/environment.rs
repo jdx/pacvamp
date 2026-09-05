@@ -4,12 +4,19 @@ use eyre::{Result, bail};
 use std::path::{Path, PathBuf};
 
 pub fn privileged(program: &str, args: Vec<String>) -> Result<()> {
-    let invocation = Invocation::new(which::which(program)?, args)
-        .elevated(&Context::detect(Default::default()))?;
+    if !matches!(program, "cp" | "rm" | "mkarchroot" | "arch-nspawn") {
+        bail!("unsupported privileged image tool: {program}");
+    }
+    // These are Arch system tools. Never elevate a caller's PATH override.
+    let mut context = Context::detect(Default::default());
+    context.sudo = Some(PathBuf::from("/usr/bin/sudo"));
+    let invocation =
+        Invocation::new(Path::new("/usr/bin").join(program), args).elevated(&context)?;
     eprintln!("{}", invocation.display());
     use std::os::fd::AsFd as _;
     if !invocation
         .command()
+        .env("PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin")
         .stdout(std::process::Stdio::from(
             std::io::stderr().as_fd().try_clone_to_owned()?,
         ))

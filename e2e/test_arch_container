@@ -210,8 +210,15 @@ exec /usr/bin/systemd-nspawn --keep-unit "$@"
 NSPAWN
 chmod 755 /usr/local/bin/systemd-nspawn
 mkdir -p /srv/pacvamp-image
-/usr/local/bin/pacvamp build-env init /srv/pacvamp-image/root --package pacman
-/usr/local/bin/pacvamp build-env update /srv/pacvamp-image/root --destination /srv/pacvamp-image/prepared --package cmake -y
+# User-writable PATH entries must never select a tool for root execution.
+mkdir -p /tmp/pacvamp-shadow-tools
+for tool in cp rm mkarchroot arch-nspawn sudo; do
+  printf '#!/bin/bash\ntouch /tmp/pacvamp-shadow-tool-ran\nexit 97\n' >"/tmp/pacvamp-shadow-tools/$tool"
+  chmod 755 "/tmp/pacvamp-shadow-tools/$tool"
+done
+PATH="/tmp/pacvamp-shadow-tools:$PATH" /usr/local/bin/pacvamp build-env init /srv/pacvamp-image/root --package pacman
+PATH="/tmp/pacvamp-shadow-tools:$PATH" /usr/local/bin/pacvamp build-env update /srv/pacvamp-image/root --destination /srv/pacvamp-image/prepared --package cmake -y
+test ! -e /tmp/pacvamp-shadow-tool-ran
 test ! -x /srv/pacvamp-image/root/usr/bin/cmake
 test -x /srv/pacvamp-image/prepared/usr/bin/cmake
 printf '%s\n' 'pacvamp-builder ALL=(root) NOPASSWD: ALL' >/etc/sudoers.d/pacvamp-fixture
