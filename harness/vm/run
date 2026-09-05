@@ -47,7 +47,7 @@ else
 	baseline_sha=$(git rev-parse --verify --end-of-options "$baseline_ref^{commit}")
 	baseline_checkout="$work/baseline"
 	git worktree add --detach "$baseline_checkout" "$baseline_sha"
-	(cd "$baseline_checkout" && CARGO_TARGET_DIR="$repo/target/vm-baseline" cargo build --locked -p pacvamp)
+	(cd "$baseline_checkout" && env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS CARGO_TARGET_DIR="$repo/target/vm-baseline" cargo build --locked -p pacvamp)
 	cp "$repo/target/vm-baseline/debug/pacvamp" "$work/previous"
 fi
 python3 - "$work" "$report" "$baseline_ref" "$baseline_sha" <<'PY'

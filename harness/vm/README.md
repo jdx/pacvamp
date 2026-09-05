@@ -28,3 +28,5 @@ space plus compilation caches. Keys and repositories are generated test fixtures
 no production signing key is used. CI uploads logs and binary identities, not the
 disk image or fixture private keys. This exercises package lifecycle and boot
 persistence, not an Omarchy desktop session or full distro upgrade matrix.
+
+Baseline source builds clear inherited `RUSTFLAGS` and `CARGO_ENCODED_RUSTFLAGS`, so current CI warning policy does not reject an older release merely because rustc gained a new lint. Candidate builds retain the workflow flags.
