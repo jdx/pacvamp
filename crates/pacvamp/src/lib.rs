@@ -24,5 +24,5 @@ pub mod update;
 
 pub mod build_process;
 
-mod search_cache;
 pub mod cgroup;
+mod search_cache;
