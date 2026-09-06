@@ -6,7 +6,7 @@ about "Server-side tooling for a repository that serves pacvamp clients"
 long_about #"""
 Server-side tooling for a repository that serves pacvamp clients
 
-Everything a repository needs to publish what pacvamp verifies: the signed index, build provenance, and (in later releases) the signer gate, the vendor pipeline, the AUR sync gate, verdicts, advisories, and snapshots. See PLAN.md in the pacvamp repository.
+Publish signed indexes, build provenance, verdicts, advisories, snapshots, and vetted tool releases. Gate package signatures and AUR syncs, and generate vendor packages from verified packslips. See https://pacvamp.com/adoption/opr for the operator workflow and https://pacvamp.com/project-status for limitations.
 """#
 arg_required_else_help #true
 flag "-h --help" help="Print help" action=help builtin=#true
@@ -155,7 +155,7 @@ cmd sign help="Sign packages with the repository key after checking provenance" 
     long_help #"""
 Sign packages with the repository key after checking provenance
 
-For every package in the directory without a .sig (or the packages given), verify its provenance envelope with an allowlisted build key and that the subject digest matches the file; optionally require a transparency log entry and consistency with the index. Only then run gpg to produce the detached signature pacman checks. A package that fails any check is refused and the command exits 1, so a build host compromise cannot produce a repository-signed package by itself.
+For every package in the directory without a .sig (or the packages given), verify its provenance envelope with an allowlisted build key and that the subject digest matches the file; optionally require a transparency log entry and consistency with the index. Only then run gpg to produce the detached signature pacman checks. A package that fails any check is refused and the command exits 1. Separate signer custody is an operator responsibility; provenance does not prove a builder is honest.
 """#
     flag "-d --dir" help="The repository directory" required=#true {
         arg <DIR>
@@ -180,7 +180,7 @@ For every package in the directory without a .sig (or the packages given), verif
         arg <INDEX>
     }
     flag "-n --dry-run" help="Check and report without signing"
-    flag "-J --json" help="Print the report as JSON"
+    flag "-J --json" help="Print the report as JSON; still signs unless --dry-run is also given"
     flag "-h --help" help="Print help" action=help builtin=#true
     complete dir type=dir
     complete rekor_pubkey type=path

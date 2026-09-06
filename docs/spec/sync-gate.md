@@ -1,9 +1,18 @@
+---
+description: Review AUR candidates and report sync decisions for repository automation.
+---
+
 # AUR sync gate
 
 Version 1, draft. How a repository that rebuilds AUR packages decides
 which upstream commits to pull. This is `pacvamp-repo sync-aur`; it runs
-the same policy engine as `pacvamp aur review` on the client, so a commit
-the gate blocks is one every client would refuse unattended.
+the same policy engine as `pacvamp aur review` on the client. The gate uses its
+configured inputs and built-in settings; client results can differ when their
+policy, history, or feed inputs differ.
+
+`sync-aur` reports decisions and can update its state/feed files. It does not
+open pull requests or merge changes in a hosting service; repository automation
+must consume its output. See the [OPR adoption guide](/adoption/opr).
 
 ## State
 
@@ -52,3 +61,6 @@ an AI reviewer with its model and prompt hash as the reviewer version.
 
 `PACVAMP_AUR_RPC_BASE` and `PACVAMP_AUR_GIT_BASE` point the gate at another
 AUR (tests use a local one); `PACVAMP_REPO_NOW` fixes the clock.
+
+See the [command reference](/cli/pacvamp-repo/sync-aur) for package selection and
+feed flags, and [recipe findings](/security-model#recipe-findings) for limits.

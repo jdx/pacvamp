@@ -27,10 +27,10 @@ const BIN: BinInfo = BinInfo {
 
 /// Server-side tooling for a repository that serves pacvamp clients
 ///
-/// Everything a repository needs to publish what pacvamp verifies: the
-/// signed index, build provenance, and (in later releases) the signer
-/// gate, the vendor pipeline, the AUR sync gate, verdicts, advisories,
-/// and snapshots. See PLAN.md in the pacvamp repository.
+/// Publish signed indexes, build provenance, verdicts, advisories, snapshots,
+/// and vetted tool releases. Gate package signatures and AUR syncs, and generate
+/// vendor packages from verified packslips. See https://pacvamp.com/adoption/opr
+/// for the operator workflow and https://pacvamp.com/project-status for limitations.
 #[derive(usage_rs::Cli)]
 #[usage(completion = true)]
 #[usage(

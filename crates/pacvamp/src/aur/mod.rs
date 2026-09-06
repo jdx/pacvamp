@@ -1,6 +1,6 @@
 //! The AUR as a source: metadata from the RPC, package recipes from git,
-//! and `.SRCINFO` parsing. Nothing here builds anything; see `PLAN.md`,
-//! "AUR is commit-bound".
+//! `.SRCINFO` parsing, review, and confined builds. See `docs/architecture.md`,
+//! "AUR build lifecycle".
 
 pub mod build;
 pub mod git;

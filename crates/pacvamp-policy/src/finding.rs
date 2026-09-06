@@ -46,7 +46,7 @@ pub enum FindingId {
 
 impl FindingId {
     /// The decision the mode makes for this finding when no override says
-    /// otherwise. See the table in `PLAN.md`, "Client-side features".
+    /// otherwise. See `docs/security-model.md`, "Recipe findings".
     pub fn default_decision(self, mode: Mode) -> Decision {
         match (self, mode) {
             (FindingId::OutOfDate, _) => Decision::Allow,

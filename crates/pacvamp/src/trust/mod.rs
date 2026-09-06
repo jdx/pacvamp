@@ -1,7 +1,7 @@
 //! What a repository publishes beyond pacman's databases: the signed index,
 //! the advisory feed, and the verdict feed, all detached-signed with a
 //! distro key the machine holds. See `docs/spec/repository-feeds.md` and
-//! `PLAN.md`, "Server-side features".
+//! `docs/spec/repository-feeds.md`.
 //!
 //! Feeds are fetched from the repository's server, verified against the
 //! keys under `/etc/pacvamp/keys` and `/usr/share/pacvamp/keys`, cached, and

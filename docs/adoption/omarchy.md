@@ -1,21 +1,26 @@
+---
+description: Integrate pacvamp into Omarchy while preserving caller identity, package intent, and update failure handling.
+---
+
 # Adopting pacvamp in Omarchy
 
-The steps the `omarchy` repository takes to make pacvamp the system
-package manager. Each step stands alone and can ship in its own release;
-the order keeps every intermediate state working.
+This guide is for Omarchy maintainers adopting pacvamp. The included helpers are
+available for integration; this page does not assert that Omarchy has deployed
+them. Rehearse each stage on a disposable installation before replacing its
+existing package path. Read [manifests](/manifests) and
+[unattended update behavior](/update-policy#unattended-results) first.
 
 ## 1. Package pacvamp
 
 Package `pacvamp` in the Omarchy Package Repository as a vendor-built
 package from this repository's releases, through `pacvamp-repo vendor`
-and a `packslip` this repository publishes, so pacvamp is the first
-package through the vendor pipeline. Make the `omarchy` package depend
+and a `packslip` this repository publishes, to exercise the vendor pipeline with pacvamp itself. Make the `omarchy` package depend
 on it. The package installs:
 
 - `/usr/bin/pacvamp`
 - `/etc/pacvamp/pacvamp.toml`, the distro manifest layer (base packages,
   `state = "absent"` entries, holds)
-- `/etc/pacvamp/conf.d/10-omarchy.toml` with the channel settings:
+- `/etc/pacvamp/conf.d/10-omarchy.toml` with publisher-provided channel settings (example URLs):
 
   ```toml
   [channel]
@@ -38,8 +43,8 @@ Keep four integration paths separate:
 | Installer, hardware detection, migration, temporary tools | The scripted helpers below use `install -y` / `remove -y` | Does not edit any manifest |
 | Unattended updates | `pacvamp update --no-aur -y`, then AUR update as the build user | Reads policy/holds; does not declare packages |
 
-`omarchy-pkg-add`, `omarchy-pkg-aur-add`, and `omarchy-pkg-drop` already serve
-noninteractive setup/migration callers. Install the tested replacements from
+Audit noninteractive setup/migration callers of `omarchy-pkg-add`,
+`omarchy-pkg-aur-add`, and `omarchy-pkg-drop`. Install the fixture-tested replacements from
 [`omarchy/`](https://github.com/jdx/pacvamp/tree/main/docs/adoption/omarchy):
 
 ```bash
@@ -102,7 +107,7 @@ pacvamp apply -y
 pacvamp update --aur-only -y
 ```
 
-Use `set -e` (as Omarchy's update entrypoint already does) and preserve stdout,
+Use `set -e` and preserve stdout,
 stderr and exit status in the update log. Failed required installs/removals or
 repository updates stop dependent migration work. Do not add `|| true`, retry
 with direct `pacman --noconfirm`, or disable policy to work around a refusal.
@@ -145,7 +150,8 @@ taken before updates.
 
 ## 6. Agent CLIs through the tool channel
 
-In the system-level mise config:
+Once the configured channel actually publishes these tools, use aliases such as
+the following in the system-level mise config:
 
 ```toml
 [alias]
@@ -158,3 +164,11 @@ with the `tool-channel` plugin installed system-wide, so `mise use
 claude` resolves to the newest vetted build. Stop forcing
 `MISE_MINIMUM_RELEASE_AGE=0` in `omarchy-update-mise` once the channel
 covers the tools it was for.
+
+## Acceptance before switching defaults
+
+Exercise a fresh install, a user-selected package, a held update, an AUR refusal,
+and interrupted-transaction recovery in the intended caller contexts. Verify
+required versions before dependent migrations. Test channel rollback alongside the
+filesystem recovery procedure, and retain logs from the actual distro image.
+See [security acceptance](/security-testing) and [snapshots](/snapshots).

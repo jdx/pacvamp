@@ -9,11 +9,11 @@ Refreshes the sync databases, plans the repository upgrade with the manifest's h
 
 ## Flags
 - **`-y --yes`** — Proceed without asking; findings deny rather than warn
-- **`-n --dry-run`** — Plan everything, run nothing
+- **`-n --dry-run`** — Preview without installing; may fetch recipes and signed feeds
 - **`--no-aur`** — Skip the AUR
 - **`--aur-only`** — Only the AUR
 - **`--no-refresh`** — Do not refresh the sync databases first
 - **`--prune-orphans`** — Remove dependencies nothing needs any more
-- **`-J --json`** — Print the plan as JSON and run nothing
+- **`-J --json`** — Print the preview as JSON without installing; may populate caches
 - **`--wait`** — Queue behind another running update instead of failing
 - **`-h --help`** — Print help

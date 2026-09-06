@@ -1,3 +1,7 @@
+---
+description: Package provenance envelopes, signer-gate checks, and the limits of client transparency verification.
+---
+
 # Build provenance
 
 Version 1, draft. What a repository's build host attaches to every
@@ -18,14 +22,15 @@ envelope:
 
 The signature is a raw Ed25519 signature over the DSSE pre-authentication
 encoding of the payload type and payload, made with a build key in the
-same format as packslip and minisign keys. The key id is the minisign key
+minisign-compatible format. The key id is the minisign key
 id. A repository lists the build keys it accepts in its index under
 `build_keys`, and marks a package's `evidence.build_provenance` only when
 the envelope verifies with one of them and the subject digest matches the
 package file.
 
-`.sigstore.json` is reserved for a sigstore bundle carrying the same
-statement, for repositories that log to Rekor.
+`.sigstore.json` is reserved for a Sigstore bundle carrying the same statement.
+It is not currently verified as an alternative build-provenance format. Rekor
+uploads from `attest` use the envelope plus `.rekor.json` described below.
 
 ## The statement
 
@@ -72,10 +77,11 @@ pacvamp-repo attest --key build.key --pkgbase mise-bin \
   --dependency <uri>=<sha256> ... <package files>
 ```
 
-The build host holds `build.key` (ideally hardware-backed; the seed file
-is the interim form) and nothing else signs with it. The signer host that
-holds the repository GPG key checks the envelope before signing a package
-(the signer gate, a later layer).
+The command reads a build-key seed file. Keep it dedicated to build provenance.
+Hardware-backed custody is a deployment objective requiring a supported signing
+integration; a seed file does not provide it. The signer checks the envelope
+before signing a package using the implemented gate below. It runs on a separate
+host only when the operator deploys separate signer custody.
 
 ## Transparency
 
@@ -90,8 +96,11 @@ compromised build host leaves a public trail.
 
 ## The signer gate
 
-The repository GPG key lives on a separate signer host. `pacvamp-repo sign`
-runs there and signs a package only after:
+With separate signer custody deployed, the repository GPG key and
+`pacvamp-repo sign` run on a host separate from the builder. The
+[reference registry](/operations/registry#signing-custody) currently keeps the
+feed, build, and OpenPGP keys on one host. In either deployment, the command
+signs a package only after:
 
 1. the provenance envelope beside it verifies with an allowlisted build
    key, carries the SLSA provenance predicate, and names the package's
@@ -103,9 +112,11 @@ runs there and signs a package only after:
    digest.
 
 Only then does it run `gpg --detach-sign` with the repository key. Any
-failure refuses the package and the command exits non-zero, so a build
-host compromise cannot produce a repository-signed package on its own.
-`--dry-run` reports without signing; `--json` prints the verdicts.
+failure refuses the package and the command exits non-zero. This limits access
+to the repository key when signer custody is actually separate; it does not
+independently prove that a compromised builder's statement is truthful.
+`--dry-run` reports without signing; `--json` changes output format and still
+signs unless combined with `--dry-run`.
 
 The inclusion proof is verified: the entry body is the Merkle leaf, the
 proof must reach the stated root, and the checkpoint the log returns
@@ -118,7 +129,15 @@ verified.
 ## Consuming it
 
 `pacvamp-repo index` verifies envelopes against the accepted build keys and
-records the result. A client reads `evidence.build_provenance` from the
-signed index and may fetch the sidecar to display or re-verify the
-statement; the accepted keys travel in the index so the client needs no
-extra configuration.
+records the result. Client transactions check the supported sidecar according to
+`policy.trust.provenance`; the accepted build keys travel in the authenticated
+index. See [transaction enforcement](/spec/repository-feeds#transaction-enforcement).
+
+The separate `pacvamp verify` report fetches the advertised envelope and checks
+its signature and package subject. Its `.rekor.json` check binds the entry body
+to the envelope's payload and requires an inclusion proof to be present. That
+client check does **not** verify the Merkle path or checkpoint signature. The
+signer gate's stronger proof checks must not be attributed to this report.
+
+See [security boundaries](/security-model#publisher-verification-and-remaining-gaps)
+and the [sign reference](/cli/pacvamp-repo/sign) for configuration and limits.

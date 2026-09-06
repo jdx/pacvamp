@@ -1,7 +1,6 @@
 //! Settings: what the manifest layers say about policy, merged lowest to
 //! highest, with the managed floor applied last through per-setting
-//! combinators the way aube does it. See `PLAN.md`, "Settings" and
-//! "Managed config".
+//! combinators the way aube does it. See `docs/configuration.md`.
 //!
 //! Combinators:
 //! - `max`: the stricter (larger) value wins, so a user can raise an age

@@ -1,8 +1,7 @@
 //! The build jail: Landlock for the filesystem and TCP, seccomp for inet
 //! sockets, applied by a helper process that restricts itself and then
 //! execs the build. That keeps the crate free of `unsafe` (no
-//! `pre_exec`) and keeps the parent unrestricted. See `PLAN.md`, "Jailed
-//! builds".
+//! `pre_exec`) and keeps the parent unrestricted. See `docs/security-model.md`, "Build isolation".
 //!
 //! If the kernel cannot enforce what was asked for, the build fails
 //! instead of running unjailed.

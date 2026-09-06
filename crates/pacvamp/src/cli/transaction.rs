@@ -196,7 +196,7 @@ pub fn render(verb: &str, plan: &Plan) -> String {
 /// Show the plan, then confirm and apply it unless this is a dry run.
 ///
 /// Unattended runs (`yes`) refuse a plan with warnings: what a human is
-/// warned about, automation is denied. See `PLAN.md`, principle 5.
+/// warned about, automation is denied. See `docs/design-decisions.md`, "Make automation stricter".
 pub fn confirm_and_apply(
     app: &super::App,
     engine: &dyn Engine,

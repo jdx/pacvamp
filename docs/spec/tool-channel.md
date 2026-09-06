@@ -1,10 +1,14 @@
+---
+description: Publish and consume a signed index of mirrored vendor tool releases for mise.
+---
+
 # Tool channel
 
 Version 1, draft. A signed index of vendor tool releases a channel
-operator has vetted, mirrored with their evidence, for mise. On Omarchy
-this is how `mise use claude` installs a build the distro checked rather
-than whatever the vendor pushed an hour ago. Nothing in the format is
-Omarchy-specific; a company can publish an internal channel the same way.
+operator has vetted and mirrored with their evidence for mise. The included
+backend plugin consumes it; native mise integration is separate adoption work.
+Nothing in the format requires Omarchy. Start with the
+[mise adoption guide](/adoption/mise) for the integration boundary.
 
 ## Layout
 
@@ -25,6 +29,10 @@ records `allow_unlogged` (false by default) and `list_sequence`. The client
 checks the bundle's project, version, signature, log policy, digest, and size.
 Legacy document/signature sidecars must be republished in a fresh store.
 Tool channels require an explicit vendor public key.
+
+Tool names, versions, URLs, and abbreviated keys in these examples illustrate
+the format; they do not claim those vendors publish packslips or are available
+in a deployed channel.
 
 ## `tools/index.json`
 
@@ -118,3 +126,7 @@ and `unhold` pull and restore a version; `status` lists everything.
 
 The channel base comes from `[channel] tools_base` in the manifest or
 `--base`.
+
+See the [publisher CLI](/cli/pacvamp-repo/tool-channel),
+[client tools CLI](/cli/pacvamp/tools), and
+[backend plugin](https://github.com/jdx/pacvamp/tree/main/plugins/mise-tool-channel).

@@ -1,6 +1,6 @@
 //! `pacvamp.lock`: approved AUR commits and the evidence that was approved
 //! with them, next to the user manifest and meant to be committed with
-//! it. See `PLAN.md`, "Lockfile".
+//! it. See `docs/manifests.md`, "Manifest, lockfile, and ledger".
 
 use std::collections::BTreeMap;
 use std::io::Write as _;

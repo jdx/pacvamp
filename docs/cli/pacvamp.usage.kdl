@@ -3,7 +3,7 @@ bin pacvamp
 version "0.1.0"
 author "Jeff Dickey <@jdx>"
 about "A trust-focused package manager for pacman-based Linux distributions"
-long_about "pacvamp installs, removes, and updates packages from the Arch mirror, the Omarchy Package Repository, and the AUR through one command, with trust tiers, commit-bound AUR builds, and policy that is stricter when nobody is watching. https://github.com/jdx/pacvamp"
+long_about "pacvamp previews and performs pacman package transactions, records package declarations, and reviews AUR recipes before building approved commits. Signed repository evidence and build protections depend on configuration and publisher support. Experimental and unsupported; see https://pacvamp.com/getting-started"
 arg_required_else_help #true
 flag --config help="Read this pacman.conf instead of /etc/pacman.conf" global=#true {
     arg <CONFIG>
@@ -29,7 +29,7 @@ Writes to the user manifest and converges only the packages named, so other decl
     flag --aur help="Declare the packages as coming from the AUR"
     flag --hold help="Never upgrade the packages"
     flag "-y --yes" help="Proceed without asking; refuses a plan with warnings"
-    flag "-n --dry-run" help="Update the manifest and show what would run, run nothing"
+    flag "-n --dry-run" help="Write the user manifest, then preview package changes without applying them"
     flag "-h --help" help="Print help" action=help builtin=#true
     arg <PACKAGES>... help="Package names, optionally as repo/name"
 }
@@ -206,7 +206,7 @@ Remove packages from your manifest, then from the machine
 Deletes the entries from the user manifest. A package that no lower layer still declares present is then removed if installed; one the distro layer declares stays, since dropping it means "back to the default".
 """#
     flag "-y --yes" help="Proceed without asking; refuses a plan with warnings"
-    flag "-n --dry-run" help="Update the manifest and show what would run, run nothing"
+    flag "-n --dry-run" help="Write the user manifest, then preview package changes without applying them"
     flag "-h --help" help="Print help" action=help builtin=#true
     arg <PACKAGES>... help="Package names"
 }
@@ -420,12 +420,12 @@ Update the machine: repositories, then the AUR
 Refreshes the sync databases, plans the repository upgrade with the manifest's holds and the per-tier release-age floors, reviews every AUR package that has a newer commit, shows one plan, and applies it. Unattended (-y), a finding that denies skips that AUR package and the rest continues. Ends with the orphan and pacnew reports.
 """#
     flag "-y --yes" help="Proceed without asking; findings deny rather than warn"
-    flag "-n --dry-run" help="Plan everything, run nothing"
+    flag "-n --dry-run" help="Preview without installing; may fetch recipes and signed feeds"
     flag --no-aur help="Skip the AUR"
     flag --aur-only help="Only the AUR"
     flag --no-refresh help="Do not refresh the sync databases first"
     flag --prune-orphans help="Remove dependencies nothing needs any more"
-    flag "-J --json" help="Print the plan as JSON and run nothing"
+    flag "-J --json" help="Print the preview as JSON without installing; may populate caches"
     flag --wait help="Queue behind another running update instead of failing"
     flag "-h --help" help="Print help" action=help builtin=#true
 }

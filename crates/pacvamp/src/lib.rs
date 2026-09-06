@@ -1,8 +1,7 @@
 //! The pacvamp client as a library, so the binary is a thin `main` and the
 //! pieces can be tested and reused.
 //!
-//! See `PLAN.md` for the design. The module layout follows its
-//! "Architecture" section.
+//! See `docs/architecture.md` for the component boundaries and data flow.
 
 #![forbid(unsafe_code)]
 

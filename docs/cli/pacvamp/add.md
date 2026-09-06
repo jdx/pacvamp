@@ -15,5 +15,5 @@ Writes to the user manifest and converges only the packages named, so other decl
 - **`--aur`** — Declare the packages as coming from the AUR
 - **`--hold`** — Never upgrade the packages
 - **`-y --yes`** — Proceed without asking; refuses a plan with warnings
-- **`-n --dry-run`** — Update the manifest and show what would run, run nothing
+- **`-n --dry-run`** — Write the user manifest, then preview package changes without applying them
 - **`-h --help`** — Print help

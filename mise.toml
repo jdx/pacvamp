@@ -79,6 +79,17 @@ for bin in pacvamp pacvamp-repo; do
   "target/debug/$bin" __usage > "docs/cli/$bin.usage.kdl"
   usage generate markdown -f "docs/cli/$bin.usage.kdl" -m --html-encode --out-dir "docs/cli/$bin" --url-prefix "/cli/$bin"
 done
+# The root page and the `index` subcommand both render to index.md. Preserve
+# the command reference as a section of the root page, using generated output.
+usage generate markdown -f docs/cli/pacvamp-repo.usage.kdl --html-encode |
+  awk '
+    /^## `pacvamp-repo index`$/ { printing = 1; found = 1 }
+    printing && /^## `/ && $0 != "## `pacvamp-repo index`" { printing = 0 }
+    printing { section = section $0 "\\n" }
+    END { if (!found) exit 1; sub(/\\n+$/, "", section); print ""; print section }
+  ' >> docs/cli/pacvamp-repo/index.md
+sed 's@](/cli/pacvamp-repo/index.md)@](/cli/pacvamp-repo/#pacvamp-repo-index)@' docs/cli/pacvamp-repo/index.md > docs/cli/pacvamp-repo/index.md.tmp
+mv docs/cli/pacvamp-repo/index.md.tmp docs/cli/pacvamp-repo/index.md
 """
 
 [tasks."render:check"]

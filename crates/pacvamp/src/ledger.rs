@@ -1,6 +1,6 @@
 //! The ledger: what pacvamp did, as opposed to what the manifest says.
 //! `/var/lib/pacvamp/state.json`, root-owned, schema-versioned, written
-//! atomically. See `PLAN.md`, "Ledger".
+//! atomically. See `docs/architecture.md`, "Intent and recorded state".
 //!
 //! Writes happen after a transaction. pacvamp runs as the invoking user, so
 //! a write is attempted directly and, when the directory refuses it,

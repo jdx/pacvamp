@@ -20,7 +20,7 @@
 - [`pacvamp-repo advisories add <FLAGS>`](/cli/pacvamp-repo/advisories/add.md)
 - [`pacvamp-repo advisories remove <--id <ID>>`](/cli/pacvamp-repo/advisories/remove.md)
 - [`pacvamp-repo attest <FLAGS> <PACKAGES>…`](/cli/pacvamp-repo/attest.md)
-- [`pacvamp-repo index <FLAGS>`](/cli/pacvamp-repo/index.md)
+- [`pacvamp-repo index <FLAGS>`](/cli/pacvamp-repo/#pacvamp-repo-index)
 - [`pacvamp-repo repack <FLAGS>`](/cli/pacvamp-repo/repack.md)
 - [`pacvamp-repo sign <FLAGS>`](/cli/pacvamp-repo/sign.md)
 - [`pacvamp-repo snapshot [FLAGS] <SUBCOMMAND>`](/cli/pacvamp-repo/snapshot.md)
@@ -42,3 +42,21 @@
 - [`pacvamp-repo vendor [FLAGS]`](/cli/pacvamp-repo/vendor.md)
 - [`pacvamp-repo verdict <FLAGS>`](/cli/pacvamp-repo/verdict.md)
 - [`pacvamp-repo version [-J --json]`](/cli/pacvamp-repo/version.md)
+
+## `pacvamp-repo index`
+
+- **Usage:** `pacvamp-repo index <FLAGS>`
+
+Write the signed index for a repository directory
+
+Scans the directory for the database and every package file, records each file's digest and size, carries publish times over from the previous index for files already listed (new files get now), lists the sidecars present, verifies build provenance envelopes with the accepted build keys, and writes pacvamp-index.json plus its minisign signature with the sequence one above the previous index.
+
+### Flags
+- **`--repo <REPO>`** — The repository name, as in pacman.conf
+- **`-d --dir <DIR>`** — The directory holding &lt;repo>.db and the packages
+- **`-k --key <KEY>`** — The index signing key (secret seed from `packslip keygen`)
+- **`--build-key <BUILD_KEY>`** — Accepted build key public files, repeatable
+- **`--repack-key <REPACK_KEY>`** — Repackager key public files (see `pacvamp-repo repack`), repeatable
+- **`--sequence <SEQUENCE>`** — Use this sequence instead of previous + 1
+- **`--stdout`** — Print the index instead of writing it
+- **`-h --help`** — Print help

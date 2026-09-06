@@ -1,7 +1,7 @@
 //! Building an approved AUR commit with makepkg, in two phases so the jail
 //! can differ: sources are fetched with network, then the build runs with
 //! writes limited to the build directory and, unless granted, no network.
-//! See `PLAN.md`, "Jailed builds".
+//! See `docs/architecture.md`, "AUR build lifecycle".
 
 use std::os::unix::process::CommandExt as _;
 use std::path::{Path, PathBuf};

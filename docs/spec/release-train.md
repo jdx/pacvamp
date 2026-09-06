@@ -1,13 +1,18 @@
+---
+description: The client contract for signed release manifests, snapshot labels, channel pins, and rollback.
+---
+
 # Release train
 
-Version 1, draft. The client side of PLAN.md's "Release train": tested
-snapshots instead of a time delay.
+Version 1, draft. The client contract for signed snapshots and channel pointers.
+For commands and prerequisites, start with [snapshots and rollback](/snapshots).
+Operators should also read the [snapshot-store spec](/spec/snapshot-store).
 
 ## Snapshots and channels
 
 The Arch mirror is a store of immutable snapshots, `<snapshot_base>/<id>/
 {core,extra,multilib}/os/<arch>`, where `<id>` is `YYYY-MM-DDTHH`.
-Packages are content-addressed and shared between snapshots. The channels
+Unchanged package files are hard-linked between snapshots. The channels
 `edge`, `rc`, and `stable` are pointers: `edge` is the newest snapshot,
 `rc` the newest that passed the test suite, `stable` the newest `rc` that
 soaked without a hold.
@@ -21,7 +26,8 @@ base comes from the manifest:
 snapshot_base = "https://mirror.omarchy.org/snapshots"
 ```
 
-The distro layer ships it.
+An adopting distro can ship this setting. The URL above illustrates the intended
+layout; it is not a claim that an Omarchy snapshot service is deployed.
 
 ## `release.json`
 
@@ -46,9 +52,10 @@ carries its own copy at `<snapshot_base>/<id>/release.json`.
 }
 ```
 
-- `tested_pkgbases` is what the suite exercised. A client labels those
-  `tested` and everything else in the snapshot `snapshot`: consistent,
-  not tested.
+- `tested_pkgbases` is the suite's reported set. A client labels those packages
+  `tested` and other packages `snapshot`. The built-in consistency suite fills
+  this set with packages whose files it checked, so read `tests.suite` and logs
+  before interpreting the label as runtime or desktop coverage.
 - `promoted` records when the snapshot reached `rc` and `stable`.
   Rollback without `--force` requires one of them.
 - `expedited` marks a security snapshot that ran the short suite;
@@ -66,6 +73,7 @@ carries its own copy at `<snapshot_base>/<id>/release.json`.
   verifying the snapshot's manifest and checking it was promoted.
   `pacvamp channel unpin` restores the backup.
 - `pacvamp rollback --snapshot <id>` pins, refreshes, and runs a sync that
-  allows downgrades so every package matches the snapshot. Pair it with
-  the filesystem snapshot Omarchy takes before updates.
+  allows downgrades for installed repository packages available in that snapshot.
+  It does not restore application data or prior AUR outputs; pair it with a
+  separately managed filesystem recovery procedure.
 - `pacvamp update` records the snapshot it converged to in the ledger.

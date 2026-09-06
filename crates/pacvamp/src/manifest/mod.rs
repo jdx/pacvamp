@@ -1,6 +1,6 @@
 //! The manifest: what the machine should have, declared in layered
 //! `pacvamp.toml` files, with the managed floor applied last. See
-//! `PLAN.md`, "Manifest, lockfile, ledger, managed config".
+//! `docs/manifests.md` and `docs/configuration.md`.
 //!
 //! Layers, lowest to highest: `/etc/pacvamp/pacvamp.toml`,
 //! `/etc/pacvamp/conf.d/*.toml` in name order, then the user's
