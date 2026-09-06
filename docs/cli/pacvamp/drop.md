@@ -12,5 +12,5 @@ Deletes the entries from the user manifest. A package that no lower layer still 
 
 ## Flags
 - **`-y --yes`** — Proceed without asking; refuses a plan with warnings
-- **`-n --dry-run`** — Update the manifest and show what would run, run nothing
+- **`-n --dry-run`** — Write the user manifest, then preview package changes without applying them
 - **`-h --help`** — Print help

@@ -1,7 +1,16 @@
+---
+description: Resolve signed vendor releases, enforce evidence policy, and generate package recipes with packslip sidecars.
+---
+
 # Vendor pipeline
 
 `pacvamp-repo vendor` generates a PKGBUILD from a verified
 [packslip v1](https://packslip.dev/release/v1/) release bundle.
+
+This page describes package generation. For per-user tools, use the
+[tool channel](/spec/tool-channel); for deployment order, use the
+[OPR guide](/adoption/opr). Example project versions and artifact selectors must
+be checked against the chosen vendor's actual releases.
 
 ## Package declaration
 
@@ -117,3 +126,8 @@ as v1 bundles. Existing package locks remain readable. Republish legacy tool
 versions into a fresh tool store: immutable tool versions cannot be overwritten.
 The tool channel currently requires an explicit vendor public key; package
 generation additionally supports keyless identities.
+
+The [vendor](/cli/pacvamp-repo/vendor) and [repack](/cli/pacvamp-repo/repack)
+references describe command options. The upstream
+[packslip specification](https://github.com/jdx/packslip/blob/main/docs/spec/packslip.md)
+is authoritative for the release format; pacvamp owns the policy described here.

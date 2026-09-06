@@ -178,7 +178,7 @@ pub struct Add {
     /// Proceed without asking; refuses a plan with warnings
     #[usage(short = 'y', long)]
     yes: bool,
-    /// Update the manifest and show what would run, run nothing
+    /// Write the user manifest, then preview package changes without applying them
     #[usage(short = 'n', long)]
     dry_run: bool,
 }
@@ -287,7 +287,7 @@ pub struct Drop {
     /// Proceed without asking; refuses a plan with warnings
     #[usage(short = 'y', long)]
     yes: bool,
-    /// Update the manifest and show what would run, run nothing
+    /// Write the user manifest, then preview package changes without applying them
     #[usage(short = 'n', long)]
     dry_run: bool,
 }

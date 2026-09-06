@@ -1,3 +1,7 @@
+---
+description: Coordinate external mise adoption of packslip publishing, verification, and vetted tool channels.
+---
+
 # Adopting packslip and the tool channel in mise
 
 These are mise changes, outside this repository; they are listed so the
@@ -5,19 +9,15 @@ two projects move in step.
 
 ## 1. Publish a packslip from mise's own release workflow
 
-One step after the artifacts are built:
+Use packslip's upstream [publishing workflow](https://github.com/jdx/packslip#add-it-to-a-github-release)
+after release artifacts are built and uploaded. Publish the resulting
+`packslip.sigstore.json` bundle and a signed release list when using list-based
+discovery. Pin the key or workflow identity consumers are expected to verify.
 
-```bash
-packslip create --project github.com/jdx/mise --version "$VERSION" \
-  --key "$PACKSLIP_KEY" --url-base "https://github.com/jdx/mise/releases/download/v$VERSION/" \
-  --source-repo https://github.com/jdx/mise --source-tag "v$VERSION" dist/mise-*
-```
-
-and upload `packslip.sigstore.json` as a release asset,
-plus a signed release list at a stable URL (see
-[the vendor pipeline spec](../spec/vendor-pipeline.md)). mise's existing
-minisign key can sign both. This makes mise the reference adopter and
-lets OPR build `mise-bin` from the packslip.
+For the package publisher, see the [vendor pipeline](/spec/vendor-pipeline).
+For the tool channel, supply the explicit vendor public key that its current
+consumer requires; keyless package generation does not imply keyless tool-channel
+support.
 
 ## 2. Verify packslips in the `github` and `http` backends
 
@@ -29,8 +29,9 @@ from crates.io provides verification and artifact selection.
 
 ## 3. The tool channel
 
-Until native support exists, list the `tool-channel` backend plugin in
-the registry so `mise plugin install tool-channel` is one command. Later,
+As an integration step, register the included `tool-channel` backend plugin so
+users can install it by name. Until then, follow the
+[plugin installation instructions](https://github.com/jdx/pacvamp/tree/main/plugins/mise-tool-channel). Later,
 a setting listing channel URLs consulted before the registry for any
 tool the channel vets, with a paranoid rule that refuses unvetted
 versions of vetted tools, retires the plugin.
@@ -42,3 +43,10 @@ install` and `pacvamp install --aur`, so mise's "my machine" config keeps
 working and gains pacvamp's guarantees. Stop forcing a zero minimum
 release age in the Omarchy update step once the tool channel covers the
 tools it was for.
+
+## Validate the integration
+
+Test a valid release, a changed signer, a rolled-back list, a held tool version,
+and an unavailable required feed. Confirm that tools remain per-user and versioned.
+Native backend support and registry enrollment must be verified in mise itself;
+this repository's [tool-channel format](/spec/tool-channel) is the shared contract.

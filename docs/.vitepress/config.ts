@@ -15,7 +15,7 @@ if (!versionMatch) {
 const latestVersion = versionMatch?.[1] ?? "0.0.0";
 const siteUrl = "https://pacvamp.com";
 const description =
-  "Install trusted packages from distribution repositories and the AUR with policy, provenance, and repeatable system state.";
+  "Preview package changes, review AUR recipes, and declare packages with pacvamp, a proof-of-concept pacman frontend.";
 
 export default defineConfig({
   title: "pacvamp",
@@ -38,10 +38,7 @@ export default defineConfig({
     ["meta", { name: "theme-color", content: "#17112b" }],
   ],
   transformHead: ({ pageData, title, description: pageDescription, siteConfig }) => {
-    const heading =
-      pageData.relativePath === "index.md"
-        ? "Trusted packages for pacman systems"
-        : pageData.title || "pacvamp";
+    const heading = pageData.title || "pacvamp";
     const card = socialCard(heading);
     writeSocialCard(siteConfig.outDir, card);
     const image = new URL(card.path, `${siteUrl}/`).toString();
@@ -88,52 +85,68 @@ export default defineConfig({
   themeConfig: {
     logo: { src: "/logo.svg", alt: "pacvamp" },
     nav: [
-      { text: "Guide", link: "/" },
-      { text: "Install", link: "/install" },
-      { text: "Trust", link: "/trust" },
-      { text: "Client CLI", link: "/cli/pacvamp/" },
-      { text: "Repository CLI", link: "/cli/pacvamp-repo/" },
-      { text: "Packslip", link: "/spec/packslip" },
-      {
-        text: `v${latestVersion}`,
-        link: "https://github.com/jdx/pacvamp/releases",
-      },
+      { text: "Get started", link: "/getting-started" },
+      { text: "Guides", link: "/packages" },
+      { text: "Reference", items: [
+        { text: "Client CLI", link: "/cli/pacvamp/" },
+        { text: "Repository CLI", link: "/cli/pacvamp-repo/" },
+        { text: "Configuration", link: "/configuration" },
+        { text: "Specifications", link: "/spec/repository-feeds" },
+      ] },
+      { text: "Contribute", link: "/development" },
+      { text: `v${latestVersion}`, link: "https://github.com/jdx/pacvamp/releases" },
     ],
     sidebar: [
-      {
-        text: "Get started",
-        items: [
-          { text: "Overview", link: "/" },
-          { text: "Install Pacvamp", link: "/install" },
-          { text: "Trust roots", link: "/trust" },
-          { text: "Run a registry", link: "/operations/registry" },
-          { text: "Omarchy", link: "/adoption/omarchy" },
-          { text: "Repository operators", link: "/adoption/opr" },
-          { text: "mise tool channel", link: "/adoption/mise" },
-        ],
-      },
-      {
-        text: "Command line",
-        items: [
-          { text: "pacvamp", link: "/cli/pacvamp/" },
-          { text: "pacvamp-repo", link: "/cli/pacvamp-repo/" },
-          { text: "packslip", link: "https://packslip.dev/cli/" },
-        ],
-      },
-      {
-        text: "Specifications",
-        collapsed: false,
-        items: [
-          { text: "Packslip", link: "/spec/packslip" },
-          { text: "Repository feeds", link: "/spec/repository-feeds" },
-          { text: "Build provenance", link: "/spec/provenance" },
-          { text: "Vendor pipeline", link: "/spec/vendor-pipeline" },
-          { text: "AUR sync gate", link: "/spec/sync-gate" },
-          { text: "Release train", link: "/spec/release-train" },
-          { text: "Snapshot store", link: "/spec/snapshot-store" },
-          { text: "Tool channel", link: "/spec/tool-channel" },
-        ],
-      },
+      { text: "Start here", items: [
+        { text: "Overview", link: "/" },
+        { text: "Status and limitations", link: "/project-status" },
+        { text: "Install pacvamp", link: "/install" },
+        { text: "First steps", link: "/getting-started" },
+      ] },
+      { text: "Use pacvamp", items: [
+        { text: "Package operations", link: "/packages" },
+        { text: "Manifests", link: "/manifests" },
+        { text: "Configuration", link: "/configuration" },
+        { text: "Import a machine", link: "/migration" },
+        { text: "AUR review and builds", link: "/aur" },
+        { text: "Updates and blockers", link: "/update-policy" },
+        { text: "Snapshots and rollback", link: "/snapshots" },
+        { text: "Transaction recovery", link: "/recovery" },
+      ] },
+      { text: "Build and troubleshoot", collapsed: true, items: [
+        { text: "Check active protections", link: "/protection-status" },
+        { text: "Build controls", link: "/build-controls" },
+        { text: "Clean-chroot builds", link: "/clean-chroot" },
+        { text: "Build receipts and replay", link: "/build-receipts" },
+        { text: "Cache retention", link: "/cache" },
+      ] },
+      { text: "Operate and integrate", collapsed: true, items: [
+        { text: "Run a registry", link: "/operations/registry" },
+        { text: "Trust roots", link: "/trust" },
+        { text: "Omarchy adoption", link: "/adoption/omarchy" },
+        { text: "OPR adoption", link: "/adoption/opr" },
+        { text: "mise adoption", link: "/adoption/mise" },
+      ] },
+      { text: "Reference and contribute", collapsed: true, items: [
+        { text: "Client CLI", link: "/cli/pacvamp/" },
+        { text: "Repository CLI", link: "/cli/pacvamp-repo/" },
+        { text: "Security model", link: "/security-model" },
+        { text: "Architecture", link: "/architecture" },
+        { text: "Design decisions", link: "/design-decisions" },
+        { text: "Development", link: "/development" },
+        { text: "Security acceptance tests", link: "/security-testing" },
+        { text: "Roadmap", link: "https://github.com/jdx/pacvamp/blob/main/PLAN.md" },
+      ] },
+      { text: "Specifications", collapsed: true, items: [
+        { text: "Packslip integration", link: "/spec/packslip" },
+        { text: "Repository feeds", link: "/spec/repository-feeds" },
+        { text: "Build provenance", link: "/spec/provenance" },
+        { text: "Vendor pipeline", link: "/spec/vendor-pipeline" },
+        { text: "AUR sync gate", link: "/spec/sync-gate" },
+        { text: "Release train", link: "/spec/release-train" },
+        { text: "Snapshot store", link: "/spec/snapshot-store" },
+        { text: "Tool channel", link: "/spec/tool-channel" },
+      ] },
     ],
     outline: "deep",
     search: {

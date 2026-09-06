@@ -3,7 +3,7 @@
 //!
 //! Everything here is read-only and parses files directly. Nothing links
 //! libalpm, so a soname bump in pacman cannot break a consumer of this crate.
-//! See `PLAN.md`, "Engine trait", for why that matters.
+//! See `docs/design-decisions.md`, "Keep pacman compatible", for why that matters.
 
 #![forbid(unsafe_code)]
 

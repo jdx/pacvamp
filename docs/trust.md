@@ -1,10 +1,15 @@
+---
+description: Independently compare the public pacvamp registry’s package-signing and index-signing identities.
+---
+
 # Pacvamp trust roots
 
 Verify these values on `pacvamp.com` before trusting keys downloaded from
 `repo.pacvamp.com`. A key served by the registry cannot authenticate itself.
 
-These are the trust roots for the public proof-of-concept registry. Key
-rotations will be published on this page before the new keys are used.
+These are the trust roots for the public proof-of-concept registry. Operators must publish key
+rotations here before using new keys. A new independent registry needs its own
+keys and independent publication channel.
 
 ## Package repository key
 
@@ -60,3 +65,7 @@ printf '%s  %s\n' \
 The package repository key and registry index key are separate trust roots.
 The build key recorded inside a signed index is evidence authenticated by that
 index; clients do not need to configure it as a root of trust.
+
+After comparing the values, continue with [installation](/install). For the role
+of each key, see [registry custody](/operations/registry#signing-custody); for
+client evidence checks, see the [security model](/security-model).

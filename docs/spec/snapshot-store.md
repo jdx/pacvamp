@@ -1,7 +1,11 @@
+---
+description: Cut, test, promote, hold, and retain repository snapshots with signed release manifests.
+---
+
 # Snapshot store
 
 Version 1, draft. The server side of the release train
-(`release-train.md` is the client side): how a mirror becomes a store of
+([release train](/spec/release-train) is the client side): how a mirror becomes a store of
 immutable snapshots with channel pointers, and how `pacvamp-repo snapshot`
 moves them.
 
@@ -67,13 +71,19 @@ so a snapshot costs the churn since the last one, not a full copy.
 For every repository in the snapshot: the database parses, its digest
 matches `release.json`, and every package file present beside it has the
 size and sha256 the database records. Missing files fail the check
-unless `--allow-missing` (a partial mirror). It prints `tested: <name>`
-for every package it verified, so a snapshot that only ran the built-in
-check labels its packages honestly: consistent, not exercised.
+unless `--allow-missing` (a partial mirror). The verified package names become the release's `tested_pkgbases`; the standalone
+`snapshot check` command also prints them as `tested: <name>`. Client `tested`
+labels therefore need the suite context: this check establishes file consistency,
+not that the package booted or ran successfully.
 
 ## The Omarchy suite
 
-The QEMU suite (install, boot to a session, update from the previous
-stable, rollback) is a separate script that follows the same contract:
-env in, exit code and `tested:` lines out. It lives with the Omarchy
-image tooling; `harness/README.md` describes the contract and a sample.
+A distro suite can exercise installation, a desktop session, upgrades, and rollback
+using the same environment/exit-code/`tested:` contract. That full Omarchy matrix
+is adoption work. This repository has a separate Arch VM lifecycle fixture;
+neither its existence nor the built-in consistency check establishes Omarchy
+hardware coverage. See the [harness contract](https://github.com/jdx/pacvamp/tree/main/harness)
+and [development tests](/development#acceptance-tests).
+
+Use the [snapshot CLI](/cli/pacvamp-repo/snapshot) for required flags, including
+the signing key for commands that update a release manifest.

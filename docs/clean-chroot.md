@@ -1,4 +1,14 @@
+---
+description: Provision an Arch build image, isolate dependencies, and manage disposable clones and cleanup.
+---
+
 # Clean-chroot builds
+
+Use a clean image when a build should resolve dependencies against a provisioned
+Arch environment rather than the host. This backend is optional and requires
+Arch devtools, bubblewrap, working user namespaces, and an approved recipe.
+
+## Isolation boundary
 
 The optional backend builds against an independently provisioned Arch image using
 bubblewrap's mount, PID, IPC, user, and (during offline builds) network namespaces.
@@ -9,6 +19,8 @@ Source verification receives the host resolver as a read-only mount at the
 image resolver's target, including systemd-resolved links into /run.
 The regular Landlock/seccomp jail, source-verification separation, and resource
 controls still apply.
+
+## Provision and select an image
 
 Provision an image with Arch devtools, including the package's declared build and
 runtime dependencies. For example, an administrator can run:
@@ -41,12 +53,14 @@ identify the image and inventory its installed package versions.
 The CI container uses privileged mode only to exercise nested namespaces. The
 package recipe still runs as the non-root builder inside the read-only image.
 
-## Managed environments
+## Update the base image
 
 `sudo pacvamp build-env init /var/lib/pacvamp/chroot/root` provisions base-devel.
 `pacvamp build-env update ROOT --destination NEW_ROOT` clones and upgrades a new
 image; the previous image remains available. A failed provisioning command leaves
 its destination for inspection, and never overwrites an existing image.
+
+## Prepare dependencies in a disposable image
 
 `pacvamp aur build PACKAGE --prepare-image` makes a disposable clone of the
 configured image, installs missing repository dependencies there, builds, and
@@ -60,9 +74,13 @@ This requires devtools, sudo/root permission for image provisioning, and enough
 space for a copy when filesystem reflinks are unavailable. Dependency installation
 can upgrade the disposable image to keep its repository packages coherent. The
 resulting package inventory is recorded in the receipt. The shared base image and
-host package database are unchanged. A forced kill may leave a temporary image
-under the system temporary directory; its path is printed during provisioning.
+host package database are unchanged. The clone path is printed during provisioning.
+
+## Storage and cleanup
 
 Disposable images live under the user’s AUR cache in `.pacvamp-images`, independently of `TMPDIR`, so Arch’s default `/tmp` tmpfs does not absorb a multi-gigabyte image. Put the cache on the base image’s filesystem to allow reflinks; other filesystems require space for a full copy. Normal cleanup removes the clone; forced termination may leave a directory there for inspection and manual cleanup.
 
 Before cloning the image or running the recipe, disposable builds authorize a dedicated cleanup process. It waits outside the build’s process group and removes the clone when the supervisor closes its pipe, so an expired sudo timestamp does not strand a successful long build’s image. Cleanup is anchored to the original private directory; replacing its pathname cannot redirect deletion. Provisioning failures before the cleaner starts can still require manual cleanup.
+
+See [build controls](/build-controls) for resource limits and
+[receipts](/build-receipts) for image fingerprints and replay requirements.

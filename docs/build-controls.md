@@ -1,4 +1,14 @@
+---
+description: Set AUR build budgets, understand cancellation and sampled disk accounting, and configure optional cgroup limits.
+---
+
 # Build controls
+
+Use these controls to bound AUR build resource use and understand cancellation.
+They apply to the [normal AUR workflow](/aur) and [clean-image builds](/clean-chroot).
+Inspect effective limits with `pacvamp doctor`.
+
+## Supervision and defaults
 
 Every makepkg phase runs under a supervised process group, including when
 `aur.jail = false`. Interrupts and timeouts kill the group. Descendants cannot
@@ -25,6 +35,8 @@ process count uses Linux's per-real-user limit; it includes other processes owne
 by the build user and is not enforced for privileged users. These are not cgroup
 limits on aggregate memory or CPU. `pacvamp doctor` reports the effective kernel
 limits after clamping to inherited ceilings, using bytes to retain exact values.
+
+## Disk accounting and retained logs
 
 The supervisor checks disk usage each second and once more when each phase exits.
 For each regular file and directory it counts the larger of logical length and
@@ -81,3 +93,7 @@ watcher keeps retrying busy groups with capped backoff until they disappear. The
 CLI waits at most two seconds for the watcher, then leaves cleanup running
 independently. Killing both supervisor and watcher defeats this cleanup mechanism. Disk accounting is
 still sampled and is not a filesystem quota.
+
+For retained output and cleanup, see [build receipts](/build-receipts) and
+[cache retention](/cache). The [security tests](/security-testing) exercise these
+boundaries under supported kernels.

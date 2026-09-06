@@ -1,181 +1,137 @@
-# Isolated Pacvamp registry
+---
+description: Deploy and inspect the independent proof-of-concept pacvamp registry using the repository’s existing workflow and services.
+---
 
-This is the first production-shaped Pacvamp registry. It serves one independent
-pacman repository at `repo.pacvamp.com`; it does not read, write, proxy, or share
-keys with OPR.
+# Run the reference registry
 
-The deployment is intentionally static:
+The deployment in this repository serves the independent proof-of-concept
+repository at `repo.pacvamp.com`. It does not share keys or storage with OPR.
+This guide is for operators of that deployment; package users should start with
+[installation](/install).
+
+The scripts and Caddy configuration target that hostname and layout. To operate a
+separate registry, adapt the hostname, package/key configuration, and workflow to
+your own infrastructure; do not reuse the public registry's identity or trust roots.
+
+## Layout and publishing flow
 
 ```text
-publisher                         Caddy
-/srv/pacvamp/sync/                /srv/pacvamp/store/
-  pacvamp/os/x86_64/                snapshots/<id>/
-    pacvamp.db                       channels/{edge,rc,stable}
-    *.pkg.tar.zst                    keys/
-    pacvamp-index.json
+/srv/pacvamp/
+  sync/pacvamp/os/x86_64/    mutable publishing workspace
+  store/
+    snapshots/<id>/        fixed package sets and signed release manifests
+    channels/              edge, rc, stable pointers
+    keys/                  public keys served by Caddy
 ```
 
-`publish-canary` builds a small package, writes signed build provenance, gates
-its package signature on that provenance, updates the signed pacman database,
-and writes `pacvamp-index.json`. `snapshot` then makes an immutable release,
-runs the consistency suite, and advances `edge` and `rc`. Promotion to `stable`
-is manual for the canary.
+The `publish` script builds the pacvamp package and the canary, writes provenance,
+gates package signatures, updates the signed pacman database, and writes a signed
+index. The `snapshot` script cuts a release, runs the consistency suite, and advances
+edge/rc. The installer then explicitly promotes rc to stable on each deployment.
+This is consistency-tested publishing, not an Omarchy desktop acceptance suite.
 
-## Host
+## Prepare the host and workflow
 
-Use a clean Arch Linux VM with a dedicated disk or volume mounted at
-`/srv/pacvamp`. Two vCPUs, 4 GiB RAM, and 40 GiB of storage are ample for the
-canary. Do not connect the host to OPR infrastructure.
+Use a dedicated Arch Linux VM with storage mounted at `/srv/pacvamp`. The reference
+scripts assume systemd, a dedicated `pacvamp-registry` account, and SSH access as
+root or an account with noninteractive sudo. The installer creates the account,
+installs dependencies, and upgrades the host's packages.
 
-## Automatic deployment
+Configure a GitHub environment named `registry`:
 
-Successful `ci` runs on `main` trigger `.github/workflows/registry-deploy.yml`.
-The workflow builds `packslip` and `pacvamp-repo` from the exact tested commit,
-bundles them with this directory, uploads the bundle over pinned-host SSH, and
-runs the idempotent installer. Signing keys are generated on the server during
-the first deployment and are never uploaded to or stored by GitHub.
+| Kind | Name | Value |
+| --- | --- | --- |
+| Variable | `REGISTRY_SSH_HOST` | Registry VM hostname or address |
+| Variable | `REGISTRY_SSH_PORT` | SSH port; default 22 |
+| Variable | `REGISTRY_SSH_USER` | Deployment account |
+| Secret | `REGISTRY_SSH_PRIVATE_KEY` | Deployment SSH key |
+| Secret | `REGISTRY_SSH_KNOWN_HOSTS` | Independently verified SSH host-key line |
 
-Create a GitHub environment named `registry` with these values:
+For the reference hostname, configure DNS and allow ports 80/443 to reach Caddy.
+Its configuration handles TLS. Use pinned SSH host verification for deployment.
 
-- variable `REGISTRY_SSH_HOST`: the VM address;
-- variable `REGISTRY_SSH_PORT`: normally `22`;
-- variable `REGISTRY_SSH_USER`: an SSH account that is root or has noninteractive
-  sudo;
-- secret `REGISTRY_SSH_PRIVATE_KEY`: its private deployment key;
-- secret `REGISTRY_SSH_KNOWN_HOSTS`: a verified `known_hosts` line for the VM.
+## Deploy a selected revision
 
-The VM needs only SSH access for the first run. The installer performs the
-package upgrade, installs runtime dependencies and services, preserves existing
-keys, publishes the first canary, promotes that first passing snapshot to
-`stable`, and enables Caddy and the daily snapshot timer. Later deployments
-replace code and configuration without rotating keys or republishing the same
-canary.
+Run the **registry deploy** workflow manually with `deploy_ref` set to the branch,
+tag, or commit you intend to deploy. Its default is `registry-deployment`.
+The workflow is not automatically triggered by a successful CI run; choose a
+revision whose validation you have reviewed.
 
-The remaining commands in this guide describe what the installer does and are
-also the manual recovery path.
+The workflow resolves an immutable Git commit, builds pacvamp and pacvamp-repo from
+it, installs the separately pinned packslip CLI, and constructs the deployment
+bundle. It sends the bundle over SSH and runs `deploy/registry/bin/install` as root.
 
-Install `base-devel`, `caddy`, `git`, `gnupg`, and Rust, then install the two
-publisher binaries into the system path (packslip is maintained separately):
+The installer preserves existing keys, updates the deployment configuration and
+package inputs, runs publish/snapshot, promotes the current rc snapshot to stable,
+and enables Caddy and the daily snapshot timer. Publishing skips package filenames
+already present; subsequent deployments still invoke publishing and promotion.
+A failure should be investigated before retrying, especially after partial publish.
 
-```bash
-cargo build --locked --release -p pacvamp-repo
-cargo install packslip --version '=1.0.0' --locked --root target/packslip-cli
-sudo install -Dm755 target/packslip-cli/bin/packslip /usr/local/bin/packslip
-sudo install -Dm755 target/release/pacvamp-repo /usr/local/bin/pacvamp-repo
+## Signing custody
+
+| Identity | Role | Reference location |
+| --- | --- | --- |
+| Feed key | Signed index, release manifests, tool index | `/etc/pacvamp-registry/index.key` |
+| Build key | Package provenance envelopes | `/etc/pacvamp-registry/build.key` |
+| OpenPGP key | Packages and pacman databases | `/var/lib/pacvamp-registry/gnupg` |
+
+The installer generates missing keys on the host and does not send private keys
+to GitHub. **All three identities currently live on one host.** A compromised host
+therefore compromises this custody boundary; the signer gate alone does not fix it.
+
+Separate signer custody, hardware-backed integration, rotation, and recovery remain
+[roadmap work](https://github.com/jdx/pacvamp/blob/main/PLAN.md#registry-operations).
+Publish your public fingerprints through an independent trust channel. The
+[public trust-roots page](/trust) applies to the reference registry only.
+
+## Inspect and recover a deployment
+
+Inspect services and their retained logs on the registry host:
+
+```sh
+sudo systemctl status pacvamp-registry-publish.service pacvamp-registry-snapshot.service
+sudo journalctl -u pacvamp-registry-publish.service -u pacvamp-registry-snapshot.service
+sudo systemctl list-timers pacvamp-registry-snapshot.timer
 ```
 
-Install the deployment files:
+The generated configuration is `/etc/pacvamp-registry/registry.env`. It records
+paths, the repository fingerprint, and the source commit. Do not replace it with
+the example file without supplying every field required by the current publisher.
 
-```bash
-sudo install -Dm644 deploy/registry/pacvamp-registry.sysusers \
-  /usr/lib/sysusers.d/pacvamp-registry.conf
-sudo systemd-sysusers /usr/lib/sysusers.d/pacvamp-registry.conf
-sudo install -Dm644 deploy/registry/pacvamp-registry.tmpfiles \
-  /usr/lib/tmpfiles.d/pacvamp-registry.conf
-sudo systemd-tmpfiles --create /usr/lib/tmpfiles.d/pacvamp-registry.conf
-sudo install -Dm755 deploy/registry/bin/publish-canary \
-  /usr/local/lib/pacvamp-registry/publish-canary
-sudo install -Dm755 deploy/registry/bin/snapshot \
-  /usr/local/lib/pacvamp-registry/snapshot
-sudo cp -R deploy/registry/canary /usr/local/lib/pacvamp-registry/
-sudo install -Dm644 deploy/registry/pacvamp-registry-snapshot.service \
-  /etc/systemd/system/pacvamp-registry-snapshot.service
-sudo install -Dm644 deploy/registry/pacvamp-registry-publish.service \
-  /etc/systemd/system/pacvamp-registry-publish.service
-sudo install -Dm644 deploy/registry/pacvamp-registry-snapshot.timer \
-  /etc/systemd/system/pacvamp-registry-snapshot.timer
-sudo install -Dm644 deploy/registry/Caddyfile /etc/caddy/Caddyfile
-sudo install -Dm640 -o pacvamp-registry -g pacvamp-registry \
-  deploy/registry/registry.env.example \
-  /etc/pacvamp-registry/registry.env
-```
+After resolving a failure, rerun the affected services deliberately:
 
-## Keys
-
-The canary uses three independent identities:
-
-- the index key signs Pacvamp feeds and release manifests;
-- the build key signs provenance envelopes;
-- the repository GPG key signs packages and pacman databases.
-
-Generate the minisign-format keys as the publisher account:
-
-```bash
-sudo -u pacvamp-registry packslip keygen -o /etc/pacvamp-registry/index.key
-sudo -u pacvamp-registry packslip keygen -o /etc/pacvamp-registry/build.key
-sudo -u pacvamp-registry env GNUPGHOME=/var/lib/pacvamp-registry/gnupg \
-  gpg --batch --passphrase '' --quick-generate-key \
-  'Pacvamp Registry <registry@pacvamp.com>' ed25519 sign 2y
-sudo -u pacvamp-registry env GNUPGHOME=/var/lib/pacvamp-registry/gnupg \
-  gpg --list-secret-keys --with-colons
-```
-
-Put the GPG fingerprint in `PACVAMP_GPG_KEY` inside
-`/etc/pacvamp-registry/registry.env`. Copy the public trust roots into the
-served tree:
-
-```bash
-sudo -u pacvamp-registry cp /etc/pacvamp-registry/index.pub \
-  /srv/pacvamp/store/keys/index.pub
-sudo -u pacvamp-registry env GNUPGHOME=/var/lib/pacvamp-registry/gnupg \
-  gpg --armor --export registry@pacvamp.com | \
-  sudo -u pacvamp-registry tee /srv/pacvamp/store/keys/repository.asc >/dev/null
-```
-
-For the proof of concept, all three keys live on this isolated host. Before publishing
-anything users rely on, move the repository GPG key to a separate signer and
-put the index key in hardware-backed storage. Cross-publish both public-key
-fingerprints on the [Pacvamp trust-roots page](/trust); a key downloaded only
-from the registry it authenticates is not a sufficient trust bootstrap.
-
-## Manual first publish
-
-Edit `registry.env`, then run:
-
-```bash
-sudo systemctl daemon-reload
+```sh
 sudo systemctl start pacvamp-registry-publish.service
 sudo systemctl start pacvamp-registry-snapshot.service
 sudo -u pacvamp-registry pacvamp-repo snapshot \
-  --store /srv/pacvamp/store \
-  --key /etc/pacvamp-registry/index.key \
-  status
+  --store /srv/pacvamp/store --key /etc/pacvamp-registry/index.key status
 ```
 
-Promote the tested snapshot deliberately:
+Inspect the reported release before manually promoting a chosen `SNAPSHOT_ID`:
 
-```bash
-id=$(readlink /srv/pacvamp/store/channels/rc | xargs basename)
+```sh
 sudo -u pacvamp-registry pacvamp-repo snapshot \
-  --store /srv/pacvamp/store \
-  --key /etc/pacvamp-registry/index.key \
-  promote --channel stable --id "$id"
+  --store /srv/pacvamp/store --key /etc/pacvamp-registry/index.key \
+  promote --channel stable --id SNAPSHOT_ID
 ```
 
-Validate and start the web server, but leave the timer disabled until the
-manual publish works end to end:
+Use [snapshot hold/promotion controls](/spec/snapshot-store) when a release should
+be withdrawn. Do not delete keys or rewrite published package bytes to resolve a
+failed deploy. The [provenance spec](/spec/provenance) describes signer refusal.
 
-```bash
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl enable --now caddy
-sudo systemctl enable --now pacvamp-registry-snapshot.timer
+## Validate as a client
+
+Use a disposable Arch VM and follow the [installation guide](/install). Install
+the pacvamp package and canary, then inspect policy and repository metadata:
+
+```sh
+pacvamp doctor
+pacvamp info pacvamp
+pacvamp info pacvamp-registry-canary
 ```
 
-Create `A`/`AAAA` records for `repo.pacvamp.com` pointing at this host. Caddy
-obtains and renews TLS automatically once DNS resolves and ports 80/443 reach
-the VM.
-
-## Client smoke test
-
-Follow the [installation guide](/install) to import the repository key and add:
-
-```ini
-[pacvamp]
-SigLevel = Required DatabaseRequired
-Server = https://repo.pacvamp.com/channels/stable/pacvamp/os/$arch
-```
-
-Then install `pacvamp` and `pacvamp-registry-canary` on a disposable Arch VM.
-Run `pacvamp doctor`, exercise repository search and package transactions, and
-verify the AUR metadata path. The `registry smoke` workflow performs this journey
-against every registry deployment.
+The **registry smoke** workflow can be dispatched manually and runs on pull
+requests affecting its workflow or registry deployment files. It is not automatically
+triggered by every deployment. Run it as a separate acceptance step and retain its
+results with the deployed revision. See [development](/development) for the broader
+fixture, container, and VM tests.

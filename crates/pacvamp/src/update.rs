@@ -1,6 +1,6 @@
 //! The pieces of `pacvamp update` that are not commands: release-age
 //! holds, AUR upgrade candidates, the pacman lock wait, pacnew discovery,
-//! and hooks. See `PLAN.md`, "Update flow".
+//! and hooks. See `docs/architecture.md`, "Update flow".
 
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};

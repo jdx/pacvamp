@@ -1,7 +1,17 @@
-# Install Pacvamp
+---
+description: Verify the repository key, configure pacman, and install pacvamp on a disposable x86-64 Arch machine.
+---
 
-Pacvamp currently ships as a proof-of-concept package for x86-64 Arch Linux and
-other pacman-based distributions. Use it on a disposable or recoverable machine.
+# Install pacvamp
+
+The proof-of-concept package targets x86-64 Arch Linux. Pacvamp is experimental,
+unsupported, and not ready for real use; use a disposable machine. Other
+pacman-based distributions need their own compatibility checks. Read the
+[status and limitations](/project-status) before changing package configuration.
+
+You need an existing Arch installation, network access, curl/GnuPG, and permission
+to administer pacman's keyring and configuration. These commands add a repository
+and perform a full system upgrade.
 
 ## 1. Verify and trust the repository key
 
@@ -31,7 +41,7 @@ sudo pacman-key --lsign-key E5E3DDD7492AC50D42BFEEA8D9D6D838ADC420F3
 
 ## 2. Add the repository
 
-Append this repository to `/etc/pacman.conf`:
+Add this stanza once to `/etc/pacman.conf` (edit the existing stanza if present):
 
 ```ini
 [pacvamp]
@@ -59,6 +69,7 @@ pacvamp search pacvamp
 pacvamp info pacvamp
 ```
 
-The repository is live, signed, and independently verifiable, but Pacvamp is
-still a proof of concept. In particular, review the known limitations before
-using AUR builds or unattended transactions.
+These checks show the installed version and the machine's configured protections.
+They do not certify every installed package. Follow [first steps](/getting-started)
+to preview a transaction, or [protection status](/protection-status) if `doctor`
+reports a failure. Repository signing does not change pacvamp's proof-of-concept status.

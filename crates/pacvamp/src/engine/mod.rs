@@ -5,7 +5,7 @@
 //! [`pacman::PacmanCli`]. Later it is a native implementation. Everything
 //! above this module speaks in [`Transaction`] and [`ResolvedTx`] and never
 //! in pacman flags, so the swap is a new `impl Engine`, not a rewrite. See
-//! `PLAN.md`, "Engine trait".
+//! `docs/architecture.md`, "Transaction engine".
 
 pub mod pacman;
 pub mod sudo;

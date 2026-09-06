@@ -5,7 +5,7 @@
 //! The AUR is a virtual source that never appears in `pacman.conf`, and a
 //! package that is installed but in no sync database is `foreign`, which is
 //! usually an AUR build but is not claimed to be one without evidence. See
-//! `PLAN.md`, "Sources and resolution".
+//! `docs/architecture.md`, "Package resolution".
 
 use std::fmt;
 

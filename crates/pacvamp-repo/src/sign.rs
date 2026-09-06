@@ -18,8 +18,8 @@ use usage_rs::RunWith;
 /// and that the subject digest matches the file; optionally require a
 /// transparency log entry and consistency with the index. Only then run
 /// gpg to produce the detached signature pacman checks. A package that
-/// fails any check is refused and the command exits 1, so a build host
-/// compromise cannot produce a repository-signed package by itself.
+/// fails any check is refused and the command exits 1. Separate signer custody
+/// is an operator responsibility; provenance does not prove a builder is honest.
 #[derive(Debug, usage_rs::Args)]
 pub struct Sign {
     /// The repository directory
@@ -50,7 +50,7 @@ pub struct Sign {
     /// Check and report without signing
     #[usage(short = 'n', long)]
     dry_run: bool,
-    /// Print the report as JSON
+    /// Print the report as JSON; still signs unless --dry-run is also given
     #[usage(short = 'J', long)]
     json: bool,
 }

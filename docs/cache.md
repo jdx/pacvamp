@@ -1,20 +1,49 @@
+---
+description: Inspect retained AUR builds and preview cleanup without deleting active builds or recorded evidence.
+---
+
 # Build cache retention
 
-`pacvamp cache status` shows retained runs. `pacvamp cache prune --dry-run`
-previews cleanup; omit `--dry-run` to delete eligible runs. Both accept `--json`.
-Pruning defaults to 30 days; use `--older-than-days` and optionally `--max-bytes`
-to select oldest unused runs until reaching a total-size target.
+Pacvamp retains build runs, outputs, logs, and receipts for inspection. Check what
+is retained before deleting data, especially if you may need to
+[compare or replay a build](/build-receipts).
+
+## Inspect and preview
+
+```sh
+pacvamp cache status
+pacvamp cache prune --dry-run
+```
+
+Both commands accept `--json`. Pruning defaults to runs older than 30 days.
+`--older-than-days` changes that age; `--max-bytes` selects the oldest eligible
+runs until the remaining total meets the requested size target.
+
+Status and previews can inspect a running build under a shared lease. Sizes are
+live estimates. Actual pruning takes an exclusive lease and recalculates eligibility.
+
+## Remove eligible runs
+
+```sh
+pacvamp cache prune
+```
+
+Omitting `--dry-run` deletes eligible build runs. Recipe checkouts and
+synchronization locks remain. Use the same user's cache and the system ledger that
+records those builds; sharing a cache across independent sysroots is unsupported.
+
+## What cleanup protects
 
 Active builds block pruning. Runs less than an hour old are protected, as are
-receipts referenced by the selected system ledger or its pending transactions.
-If protected data exceeds the target, pruning leaves it intact. Missing referenced
-receipts cause cleanup to fail rather than guess. Only build runs are removed;
-recipe checkouts and synchronization locks remain. Prune each user's cache against
-the system whose ledger records those builds; a shared cache across independent
-sysroots is not supported.
+receipts referenced by the selected ledger or its pending transactions. Commands
+that may build or install hold a shared lease through approval, installation, and
+ledger recording, including long confirmation prompts.
 
-Commands that may build or install AUR packages hold a shared cache lease through approval, installation, and ledger recording. Pruning cannot remove their artifacts during a long confirmation prompt.
+If protected data exceeds the size target, it remains intact. Missing referenced
+receipts cause cleanup to fail rather than guess. An unreadable run is retained
+with unknown size (`bytes: null` in JSON); known size totals exclude it.
 
-Status and dry runs use shared leases and can inspect a running build. Their sizes are a live estimate; actual pruning takes an exclusive lease and calculates eligibility again.
-
-An unreadable run is retained and reported with an unknown size (`bytes: null` in JSON); other runs can still be inspected and pruned. Known size totals exclude unreadable runs. Pruning makes owned directories writable without changing file permissions or following symlinks. Removal failures are reported per run while cleanup continues, and the command exits unsuccessfully if any selected run could not be removed.
+Pruning makes owned directories writable without changing file permissions or
+following symlinks. Removal failures are reported per run while other cleanup
+continues; any selected run that could not be removed makes the command fail.
+See the [cache reference](/cli/pacvamp/cache) for selection flags.

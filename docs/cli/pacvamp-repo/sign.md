@@ -5,7 +5,7 @@
 
 Sign packages with the repository key after checking provenance
 
-For every package in the directory without a .sig (or the packages given), verify its provenance envelope with an allowlisted build key and that the subject digest matches the file; optionally require a transparency log entry and consistency with the index. Only then run gpg to produce the detached signature pacman checks. A package that fails any check is refused and the command exits 1, so a build host compromise cannot produce a repository-signed package by itself.
+For every package in the directory without a .sig (or the packages given), verify its provenance envelope with an allowlisted build key and that the subject digest matches the file; optionally require a transparency log entry and consistency with the index. Only then run gpg to produce the detached signature pacman checks. A package that fails any check is refused and the command exits 1. Separate signer custody is an operator responsibility; provenance does not prove a builder is honest.
 
 ## Flags
 - **`-d --dir <DIR>`** — The repository directory
@@ -19,5 +19,5 @@ For every package in the directory without a .sig (or the packages given), verif
 - **`--rekor-pubkey <REKOR_PUBKEY>`** — The log's public key (SPKI PEM) to verify checkpoints with
 - **`--index <INDEX>`** — Require the package to be listed with this digest in the index
 - **`-n --dry-run`** — Check and report without signing
-- **`-J --json`** — Print the report as JSON
+- **`-J --json`** — Print the report as JSON; still signs unless --dry-run is also given
 - **`-h --help`** — Print help

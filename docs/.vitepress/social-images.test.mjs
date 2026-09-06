@@ -73,7 +73,7 @@ test("image URL hashes exactly the emitted PNG", () => {
   assert.equal(card.path, `social/${hash}.png`);
 });
 
-test("built-page checks reject swapped images and empty alt text", () => {
+test("built-page checks use the homepage title and reject swapped images and empty alt text", () => {
   const dir = mkdtempSync(join(tmpdir(), "social-validation-"));
   const first = socialCard("First page");
   const second = socialCard("Second page");
@@ -99,15 +99,15 @@ test("built-page checks reject swapped images and empty alt text", () => {
   try {
     writeSocialCard(dir, first);
     writeSocialCard(dir, second);
-    writeFileSync(join(dir, "first.html"), page("First page", first));
+    writeFileSync(join(dir, "index.html"), page("First page", first));
     writeFileSync(join(dir, "second.html"), page("Second page", second));
     const valid = check();
     assert.equal(valid.status, 0, valid.stderr);
-    writeFileSync(join(dir, "first.html"), page("First page", second));
+    writeFileSync(join(dir, "index.html"), page("First page", second));
     const swapped = check();
     assert.notEqual(swapped.status, 0);
     assert.match(swapped.stderr, /Wrong page image/);
-    writeFileSync(join(dir, "first.html"), page("First page", first, ""));
+    writeFileSync(join(dir, "index.html"), page("First page", first, ""));
     const empty = check();
     assert.notEqual(empty.status, 0);
     assert.match(empty.stderr, /Empty image alt text/);

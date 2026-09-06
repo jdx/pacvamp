@@ -26,7 +26,7 @@ pub struct Update {
     /// Proceed without asking; findings deny rather than warn
     #[usage(short = 'y', long)]
     yes: bool,
-    /// Plan everything, run nothing
+    /// Preview without installing; may fetch recipes and signed feeds
     #[usage(short = 'n', long)]
     dry_run: bool,
     /// Skip the AUR
@@ -41,7 +41,7 @@ pub struct Update {
     /// Remove dependencies nothing needs any more
     #[usage(long)]
     prune_orphans: bool,
-    /// Print the plan as JSON and run nothing
+    /// Print the preview as JSON without installing; may populate caches
     #[usage(short = 'J', long)]
     json: bool,
     /// Queue behind another running update instead of failing

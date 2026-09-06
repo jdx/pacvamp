@@ -5,7 +5,7 @@
 //! The client runs it before building; the server runs the same code in
 //! the AUR sync gate. It takes plain facts and touches neither the network
 //! nor git, so both sides gather evidence their own way and agree on the
-//! verdict. See `PLAN.md`, "Client-side features" and "sync-aur".
+//! verdict. See `docs/security-model.md` and `docs/spec/sync-gate.md`.
 //!
 //! Findings are risk signals and policy gates, never malware verdicts.
 

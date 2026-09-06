@@ -1,3 +1,7 @@
+---
+description: Draft contracts for signed package indexes, advisories, verdicts, and client transaction enforcement.
+---
+
 # Repository feeds
 
 Version 1, draft. What a repository publishes beyond pacman's database so
@@ -10,6 +14,11 @@ key is separate from the package GPG key so the two rotate independently.
 Feeds live next to the database: `<Server>/pacvamp-index.json`,
 `<Server>/advisories.json`, `<Server>/verdicts.json`, where `<Server>` is
 the repository's `Server` line in `pacman.conf`. pacman ignores them.
+
+The JSON below illustrates field shapes; abbreviated digests and signatures are
+placeholders, not deployable feed data. Configure trust through the
+[operator guide](/adoption/opr) and inspect active policy with
+[doctor](/protection-status).
 
 ## `pacvamp-index.json`
 
@@ -27,8 +36,8 @@ the repository's `Server` line in `pacman.conf`. pacman ignores them.
       "published_at": "2026-09-02T18:00:00Z",
       "sidecars": [
         "mise-bin-2026.9.1-1-x86_64.pkg.tar.zst.sig",
-        "mise-bin-2026.9.1-1-x86_64.pkg.tar.zst.sigstore.json",
-        "mise-bin-2026.9.1-1-x86_64.pkg.tar.zst.vendor.sigstore.json"
+        "mise-bin-2026.9.1-1-x86_64.pkg.tar.zst.provenance.json",
+        "mise-bin-2026.9.1-1-x86_64.pkg.tar.zst.vendor.json"
       ],
       "evidence": {
         "build_provenance": true,
@@ -54,14 +63,14 @@ the repository's `Server` line in `pacman.conf`. pacman ignores them.
   first served in this channel, which is what release-age floors use.
 - `sidecars` are files next to the package that a client may fetch:
   pacman's `.sig`, the build provenance envelope (`.provenance.json`, see
-  `provenance.md`), a sigstore bundle where one exists, the chained vendor
-  packslip (`.vendor.json`), scan statements (`.scan.json`).
+  [provenance](/spec/provenance)), a reserved Sigstore sidecar (not currently a verified build-provenance path), the chained vendor
+  packslip (`.vendor.json`), scan statements (`.scan.json`). Listing a file does not establish that the client verifies its format.
 - `evidence` is what the repository claims; `build_provenance` is set
   only when the envelope verified with an accepted build key at index
   time. `vendor_manifest` means the `.vendor.json` sidecar holds a
   packslip the vendor signed; `repackager_manifest` means the repository
   signed one about the vendor's artifacts because the vendor publishes
-  none (see `vendor-pipeline.md`), which is weaker evidence.
+  none (see [vendor pipeline](/spec/vendor-pipeline)), which is weaker evidence.
   `vendor_attested_by` repeats which. A client shows it and may verify the
   sidecars behind it.
 - `build_keys` are the build hosts whose provenance statements the
@@ -140,8 +149,8 @@ the repository's `Server` line in `pacman.conf`. pacman ignores them.
 `pacvamp-repo index` writes the index; `pacvamp-repo verdict` and
 `pacvamp-repo sync-aur --verdicts` append to the verdict feed;
 `pacvamp-repo advisories add|remove` maintains the advisory feed. Every
-write advances the sequence, sets `issued_at`, and re-signs the file with
-the feed key. See `sync-gate.md`.
+feed update advances the sequence, updates its publication timestamp, and re-signs the file with
+the feed key. See the [sync gate](/spec/sync-gate).
 
 ## Client behaviour
 

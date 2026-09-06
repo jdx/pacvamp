@@ -1,7 +1,7 @@
 //! The release train from the client's side: the signed `release.json`
 //! that says which snapshot a channel points at and what was tested, and
 //! pinning a machine's mirror to an immutable snapshot. See
-//! `docs/spec/release-train.md` and `PLAN.md`, "Release train".
+//! `docs/spec/release-train.md` and `docs/snapshots.md`.
 
 use std::io::Write as _;
 use std::path::{Path, PathBuf};

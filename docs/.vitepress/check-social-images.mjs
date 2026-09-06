@@ -39,10 +39,7 @@ for (const file of walk(root).filter((file) => file.endsWith(".html"))) {
       return { amp: "&", lt: "<", gt: ">", quot: '\"', apos: "'" }[entity];
     });
   const pageTitle = decode(meta(html, "og:title")).replace(/ \| pacvamp$/, "");
-  const heading =
-    file === join(root, "index.html")
-      ? "Trusted packages for pacman systems"
-      : pageTitle;
+  const heading = pageTitle;
   const alt = meta(html, "og:image:alt");
   assert.ok(
     typeof alt === "string" && alt.trim(),

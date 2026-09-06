@@ -46,10 +46,10 @@ fn trust_rank(trust: alpm_db::Trust) -> u8 {
     }
 }
 
-const LONG_ABOUT: &str = "pacvamp installs, removes, and updates packages from the Arch mirror, \
-the Omarchy Package Repository, and the AUR through one command, with trust tiers, \
-commit-bound AUR builds, and policy that is stricter when nobody is watching. \
-https://github.com/jdx/pacvamp";
+const LONG_ABOUT: &str = "pacvamp previews and performs pacman package transactions, \
+records package declarations, and reviews AUR recipes before building approved commits. \
+Signed repository evidence and build protections depend on configuration and publisher support. \
+Experimental and unsupported; see https://pacvamp.com/getting-started";
 
 const BIN: BinInfo = BinInfo {
     name: "pacvamp",

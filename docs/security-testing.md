@@ -1,4 +1,14 @@
+---
+description: Run adversarial AUR and kernel acceptance fixtures and understand the boundaries they validate.
+---
+
 # Security acceptance tests
+
+These tests validate specific [security boundaries](/security-model) using synthetic
+credentials and local fixtures. For setup and the full CI matrix, see
+[development](/development).
+
+## Run enforcement tests
 
 The Linux CI test job sets `PACVAMP_REQUIRE_JAIL=1`. A kernel that cannot
 fully enforce the requested Landlock and seccomp rules fails that job;
@@ -15,7 +25,9 @@ With Docker available, also run `PACVAMP_E2E_CONTAINER=1 bash e2e/run_all_tests`
 after building the workspace. The Arch container exercises real makepkg and
 fakeroot as a non-root user, including credential and shared-scratch denial.
 
-| Guarantee | Adversarial test |
+## Adversarial fixtures
+
+| Boundary | Adversarial test |
 | --- | --- |
 | Network permission does not grant credential-file access | Direct and symlink reads of a fake credential, with network enabled and disabled |
 | A build cannot change another build's scratch files | Writes outside its allowed tree are refused |
