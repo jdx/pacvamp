@@ -79,8 +79,9 @@ pacvamp-repo attest --key build.key --pkgbase mise-bin \
 
 The command reads a build-key seed file. Keep it dedicated to build provenance.
 Hardware-backed custody is a deployment objective requiring a supported signing
-integration; a seed file does not provide it. The separate signer host checks
-the envelope before signing a package using the implemented gate below.
+integration; a seed file does not provide it. The signer checks the envelope
+before signing a package using the implemented gate below. It runs on a separate
+host only when the operator deploys separate signer custody.
 
 ## Transparency
 
@@ -95,8 +96,11 @@ compromised build host leaves a public trail.
 
 ## The signer gate
 
-The repository GPG key lives on a separate signer host. `pacvamp-repo sign`
-runs there and signs a package only after:
+With separate signer custody deployed, the repository GPG key and
+`pacvamp-repo sign` run on a host separate from the builder. The
+[reference registry](/operations/registry#signing-custody) currently keeps the
+feed, build, and OpenPGP keys on one host. In either deployment, the command
+signs a package only after:
 
 1. the provenance envelope beside it verifies with an allowlisted build
    key, carries the SLSA provenance predicate, and names the package's
