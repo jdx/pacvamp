@@ -28,8 +28,8 @@ jobs:
           components: rustfmt, clippy
       - uses: jdx/mise-action@v3
         with:
-          install_args: --locked actionlint hk mr-boxington shellcheck shfmt taplo usage
-      - uses: ./.github/actions/mbx
+          install_args: --locked hk mr-boxington shellcheck shfmt taplo usage
+      - uses: $/.github/actions/mbx
       - name: Run non-compiling linters
         run: mise run lint
         env:
@@ -93,7 +93,7 @@ jobs:
       - uses: jdx/mise-action@v3
         with:
           install_args: --locked mr-boxington
-      - uses: ./.github/actions/mbx
+      - uses: $/.github/actions/mbx
       - run: mbx build --locked --workspace --all-features
       - name: Allow nested build namespaces on the disposable runner
         # Ubuntu's host AppArmor restriction also applies inside privileged
