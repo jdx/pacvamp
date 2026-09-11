@@ -22,7 +22,7 @@ jobs:
       - uses: jdx/mise-action@v3
         with:
           install_args: --locked mr-boxington
-      - uses: ./.github/actions/mbx
+      - uses: $/.github/actions/mbx
       - run: mbx build --locked --release -p pacvamp
       - name: Measure fresh-process search and present on an Arch-sized corpus
         run: python3 benchmarks/search.py --max-indexed-ms 150 --max-rebuild-ms 3000 --max-present-ms 100

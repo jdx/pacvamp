@@ -3,7 +3,6 @@ wrappers = { cargo = { command = "mbx", env = { MBX_CARGO_SHIM_MODE = "1" } } }
 _.path = ["./target/debug"]
 
 [tools]
-actionlint = "latest"
 "bun" = "latest"
 cargo-insta = "latest"
 "cargo:cargo-edit" = "latest"
