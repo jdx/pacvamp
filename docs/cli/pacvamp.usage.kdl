@@ -1,6 +1,6 @@
 name pacvamp
 bin pacvamp
-version "0.1.0"
+version "0.2.0"
 author "Jeff Dickey <@jdx>"
 about "A trust-focused package manager for pacman-based Linux distributions"
 long_about "pacvamp previews and performs pacman package transactions, records package declarations, and reviews AUR recipes before building approved commits. Signed repository evidence and build protections depend on configuration and publisher support. Experimental and unsupported; see https://pacvamp.com/getting-started"
