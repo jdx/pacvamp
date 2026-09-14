@@ -1,6 +1,11 @@
 # Changelog
 
-## [0.2.0](https://github.com/jdx/pacvamp/compare/v0.1.0..v0.2.0) - 2026-09-11
+## [0.2.1](https://github.com/jdx/pacvamp/compare/v0.2.0..v0.2.1) - 2026-09-14
+
+### Documentation
+
+- stop clipping the GitHub star count in the nav overflow menu in [#91](https://github.com/jdx/pacvamp/pull/91)
+## [0.2.0](https://github.com/jdx/pacvamp/compare/v0.1.0..v0.2.0) - 2026-09-13
 
 ### Bug fixes
 
